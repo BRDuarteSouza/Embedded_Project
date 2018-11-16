@@ -5,3 +5,22 @@
 #include <ch.h>
 #include <hal.h>
 #include <chprintf.h>
+
+
+typedef enum {
+  Gira_R,
+  Gira_L
+} Giro;
+
+
+
+
+
+
+
+
+
+void wait_timeout(GPTDriver *gpt_p){
+
+
+}
