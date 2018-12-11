@@ -44,7 +44,7 @@ cb_status s211_cb(event_t ev);
                 dispatch(ENTRY_EVENT);          \
                 push_state(s1_main_machine_cb); \
                 dispatch(ENTRY_EVENT);          \
-
+} while (0); \
 
 #define start_ser1_tran() do {                  \
                 replace_state(s12_molho_cb);    \
