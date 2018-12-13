@@ -381,5 +381,6 @@ int main(void){
   while(1){
     lavar_maquina();
   }
+  //casa 
   return 0;
 }
