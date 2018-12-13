@@ -64,6 +64,7 @@ typedef struct {
   long ul_espera;
   int turns;
   int t_espera;
+  int t_giros;
 } fsm_lavagem_s;
 
 typedef struct {
@@ -89,7 +90,8 @@ static void fsm_lavagem_init(fsm_lavagem_s *st)
 {
   st->lvg = RODAR_LVG;
   st->turns = 0;
-  st->t_espera = 12;
+  st->t_espera = 2;
+  st->t_giros = 12;
   time(&st->instante);
   st->ul_espera = st->instante;
 }
@@ -119,6 +121,16 @@ fsm_enxague_s fsm_exg;
 
 fsm_centrifuga_s fsm_cen;
 
+
+/* Função de configuração */
+
+void setup(){
+
+
+}
+
+
+
 /* Função de Giro */
 
 void spinning(int timer) {
@@ -133,6 +145,9 @@ void spinning(int timer) {
     time(&agora);
     switch(rd){
       case(GIRA_R):
+        if(lavar == EMERGENCIA){
+          return;
+        } // verifcar emergência
         // printf("Rodando Direita");
         if(agora - ls_report >= 1){
           printf("Girando pra Esqueda\n");
@@ -145,6 +160,9 @@ void spinning(int timer) {
         }
         break;
       case(GIRA_L):
+        if(lavar == EMERGENCIA){
+          return;
+        } // verifcar emergência
         if(agora - ls_report >= 1){
           printf("Girando pra Direita\n");
           ls_report = agora;
@@ -169,6 +187,9 @@ void lavar_maquina(){
   switch(lavar){
 
     case(PARADA):
+      if(lavar == EMERGENCIA){
+        break;
+      } // verifcar emergência
       printf("Inicio da Parada\n");
       printf("Escolha o estado inicial:\n");
       scanf("%d", &fsm_prd.select_init);
@@ -202,6 +223,9 @@ void lavar_maquina(){
 
       switch(fsm_ml.ml){
         case(ENCHER_ML):
+          if(lavar == EMERGENCIA){
+            break;
+          } // verifcar emergência
           printf("DEBUG: Super MOLHO - estado ENCHER_ML\n");
           printf("Abrir água\n");
           if(1){
@@ -212,6 +236,9 @@ void lavar_maquina(){
           break;
 
         case(RODAR_ML):
+          if(lavar == EMERGENCIA){
+            break;
+          } // verifcar emergência
           printf("DEBUG: Super MOLHO - estado RODAR_ML\n");
           spinning(fsm_ml.t_giro);
           lavar = LAVAGEM;
@@ -228,9 +255,12 @@ void lavar_maquina(){
 
       switch(fsm_lvg.lvg){
         case(RODAR_LVG):
+          if(lavar == EMERGENCIA){
+            break;
+          } // verifcar emergência
           printf("DEBUG Super LAVAGEM - estado RODAR_LVG\n");
           printf("Inicio giros Lavagem\n");
-          spinning(fsm_lvg.t_espera);
+          spinning(fsm_lvg.t_giros);
           fsm_lvg.ul_espera = time(&fsm_lvg.instante);
           fsm_lvg.lvg = ESPERA_LVG;
           printf("DEBUG: Super LAVAGEM - estado ESPERA\n");
@@ -238,8 +268,11 @@ void lavar_maquina(){
           break;
 
         case(ESPERA_LVG):
+          if(lavar == EMERGENCIA){
+            break;
+          } // verifcar emergência
           time(&fsm_lvg.instante);
-          if(fsm_lvg.instante - fsm_lvg.ul_espera > TEMPO_ESPERA_LAVAGEM){
+          if(fsm_lvg.instante - fsm_lvg.ul_espera > fsm_lvg.t_espera){
             fsm_lvg.ul_espera = time(&fsm_lvg.instante);
             if(fsm_lvg.turns >= 3){
               fsm_lvg.turns = 0;
@@ -254,6 +287,9 @@ void lavar_maquina(){
           break;
 
         case(ESVAZIA_LVG):
+          if(lavar == EMERGENCIA){
+            break;
+          } // verificar emergência
           printf("DEBUG: Super LAVAGEM - estado ESVAZIA_LVG\n");
           if(1){
             printf("Sensor Vazio: ON\n");
@@ -266,11 +302,15 @@ void lavar_maquina(){
           } // fim switch LAVAGEM
           break;
 
+
     case(ENXAGUE):
       // printf("Inicio Enxague\n ");
 
       switch(fsm_exg.exg){
         case(ENCHER_EXG):
+          if(lavar == EMERGENCIA){
+            break;
+          } // verificar emergência
           printf("DEBUG: Super ENXAGUE - estado ENCHER_EXG\n");
           if(1){
             printf("Sensor Cheio: ON\n");
@@ -280,6 +320,9 @@ void lavar_maquina(){
           break;
 
         case(RODAR_EXG):
+          if(lavar == EMERGENCIA){
+            break;
+          } // verificar emergência
           printf("DEBUG: Super ENXAGUE - estado RODAR_EXG\n");
           spinning(fsm_exg.t_giro);
           fsm_exg.exg = ESVAZIA_EXG;
@@ -287,6 +330,10 @@ void lavar_maquina(){
         break;
 
         case(ESVAZIA_EXG):
+          if(lavar == EMERGENCIA){
+            break;
+          } //  verificar a emergência
+
           printf("DEBUG: Super ENXAGUE - estados ESVAZIA_EXG\n");
           if(1){
              printf("Sensor Vazio: ON\n");
@@ -305,6 +352,9 @@ void lavar_maquina(){
 
         switch(fsm_cen.cen){
           case(GIRA_R_CENTRI):
+            if(lavar == EMERGENCIA){
+              break;
+            }
             // printf("DEBUG: Super CENTRIFUGA - estado GIRA_R_CENTRI\n");
             time(&fsm_cen.tempo);
             // printf("Super:%d - estado:%d\n ",lavar, fsm_cen.cen);
@@ -313,10 +363,16 @@ void lavar_maquina(){
               lavar = PARADA;
               printf("FIM DA Máquina\n");
             }
-          break;
-
+          break; // break de GIRA_R_CENTRI
         } // fim switch CENTRIFUGA
-    break;
+    break; // break de centrífuga.
+
+
+    case(EMERGENCIA):
+      printf("PORTA ABERTA. ERRO !!\n");
+      while(1);
+
+    break; // break de emergência
   } // fim switch máquina principal
 } // fim função da máquina principal.
 
