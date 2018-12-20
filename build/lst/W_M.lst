@@ -1,0 +1,2306 @@
+   1               		.file	"W_M.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   7               		.text
+   8               	.Ltext0:
+   9               		.cfi_sections	.debug_frame
+  10               		.section	.rodata.str1.1,"aMS",@progbits,1
+  11               	.LC0:
+  12 0000 7069 6E6F 		.string	"pinos iniciados \n\r"
+  12      7320 696E 
+  12      6963 6961 
+  12      646F 7320 
+  12      0A0D 00
+  13               		.section	.text.starting,"ax",@progbits
+  14               	.global	starting
+  16               	starting:
+  17               	.LFB172:
+  18               		.file 1 "W_M.c"
+   1:W_M.c         **** // W_M.c
+   2:W_M.c         **** // Implement a state machine to execute a washing machine taks, with ChibiOS
+   3:W_M.c         **** // Author: Bruno Duarte <brduart95@gmail.com>
+   4:W_M.c         **** 
+   5:W_M.c         **** #include <stdint.h>
+   6:W_M.c         **** #include <ch.h>
+   7:W_M.c         **** #include <hal.h>
+   8:W_M.c         **** #include <chprintf.h>
+   9:W_M.c         **** 
+  10:W_M.c         **** 
+  11:W_M.c         **** /* Define Outputs*/
+  12:W_M.c         **** #define PARADA_ID 7
+  13:W_M.c         **** #define MOLHO_ID 0
+  14:W_M.c         **** #define LAVAGEM_ID 1
+  15:W_M.c         **** #define ENXAGUE_ID 2
+  16:W_M.c         **** #define CENTRI_ID 3
+  17:W_M.c         **** #define ENCHE_ID 4
+  18:W_M.c         **** #define SECA_ID 5
+  19:W_M.c         **** #define MOTOR_DIR 0
+  20:W_M.c         **** #define MOTOR_ESQ 1
+  21:W_M.c         **** 
+  22:W_M.c         **** 
+  23:W_M.c         **** /*Define Inputs*/
+  24:W_M.c         **** #define BOT_SELECT 6
+  25:W_M.c         **** #define BOT_INIT 5
+  26:W_M.c         **** #define SEN_CHEIO 4
+  27:W_M.c         **** #define SEN_VAZIO 3
+  28:W_M.c         **** #define EMER 2
+  29:W_M.c         **** 
+  30:W_M.c         **** /* System variables*/
+  31:W_M.c         **** #define GIRO_TEMPO 1
+  32:W_M.c         **** 
+  33:W_M.c         **** /* All State machines of the project */
+  34:W_M.c         **** 
+  35:W_M.c         **** /* Main Machine*/
+  36:W_M.c         **** typedef enum{
+  37:W_M.c         ****   PARADA = 0,
+  38:W_M.c         ****   MOLHO,
+  39:W_M.c         ****   LAVAGEM,
+  40:W_M.c         ****   ENXAGUE,
+  41:W_M.c         ****   CENTRIFUGA,
+  42:W_M.c         ****   EMERGENCIA
+  43:W_M.c         **** } maquina_e;
+  44:W_M.c         **** 
+  45:W_M.c         **** maquina_e lavar = PARADA; // Create an object of Main Machine;
+  46:W_M.c         **** 
+  47:W_M.c         **** 
+  48:W_M.c         **** /* Spinning States*/
+  49:W_M.c         **** typedef enum {
+  50:W_M.c         ****   GIRA_R = 0,
+  51:W_M.c         ****   GIRA_L
+  52:W_M.c         **** } rodar_e;
+  53:W_M.c         **** 
+  54:W_M.c         **** 
+  55:W_M.c         **** /* Moisten states*/
+  56:W_M.c         **** typedef enum{
+  57:W_M.c         ****   ENCHER_ML = 6,
+  58:W_M.c         ****   RODAR_ML
+  59:W_M.c         **** } estados_molho_e;
+  60:W_M.c         **** 
+  61:W_M.c         **** 
+  62:W_M.c         **** /* Washing states*/
+  63:W_M.c         **** typedef enum{
+  64:W_M.c         ****   RODAR_LVG = 8,
+  65:W_M.c         ****   ESPERA_LVG,
+  66:W_M.c         ****   ESVAZIA_LVG
+  67:W_M.c         **** } estados_lavagem_e;
+  68:W_M.c         **** 
+  69:W_M.c         **** 
+  70:W_M.c         **** /* Rinse states*/
+  71:W_M.c         **** typedef enum{
+  72:W_M.c         ****   ENCHER_EXG = 11,
+  73:W_M.c         ****   RODAR_EXG,
+  74:W_M.c         ****   ESVAZIA_EXG
+  75:W_M.c         **** } estados_enxague_e;
+  76:W_M.c         **** 
+  77:W_M.c         **** 
+  78:W_M.c         **** /* Centrifugal states*/
+  79:W_M.c         **** typedef enum{
+  80:W_M.c         ****   GIRA_R_CENTRI = 14,
+  81:W_M.c         **** } estados_centrifuga_e;
+  82:W_M.c         **** 
+  83:W_M.c         **** 
+  84:W_M.c         **** /* Variables of intern Machines */
+  85:W_M.c         **** typedef struct {
+  86:W_M.c         ****   int select_init;
+  87:W_M.c         **** } fsm_parada_s;
+  88:W_M.c         **** 
+  89:W_M.c         **** typedef struct {
+  90:W_M.c         ****   estados_molho_e ml;
+  91:W_M.c         ****   int t_giro;
+  92:W_M.c         **** } fsm_molho_s;
+  93:W_M.c         **** 
+  94:W_M.c         **** typedef struct {
+  95:W_M.c         ****   estados_lavagem_e lvg;
+  96:W_M.c         ****   systime_t instante;
+  97:W_M.c         ****   systime_t ul_espera;
+  98:W_M.c         ****   int turns;
+  99:W_M.c         ****   int t_espera;
+ 100:W_M.c         ****   int t_giros;
+ 101:W_M.c         **** } fsm_lavagem_s;
+ 102:W_M.c         **** 
+ 103:W_M.c         **** typedef struct {
+ 104:W_M.c         ****   estados_enxague_e exg;
+ 105:W_M.c         ****   int t_giro;
+ 106:W_M.c         **** } fsm_enxague_s;
+ 107:W_M.c         **** 
+ 108:W_M.c         **** typedef struct {
+ 109:W_M.c         ****   estados_centrifuga_e cen;
+ 110:W_M.c         ****   systime_t tempo;
+ 111:W_M.c         ****   systime_t ul_centri;
+ 112:W_M.c         ****   int t_centri;
+ 113:W_M.c         **** } fsm_centrifuga_s;
+ 114:W_M.c         **** 
+ 115:W_M.c         **** 
+ 116:W_M.c         **** /* Start Condition functions*/
+ 117:W_M.c         **** static void fsm_molho_init(fsm_molho_s *st)
+ 118:W_M.c         **** {
+ 119:W_M.c         ****   st->ml = ENCHER_ML;
+ 120:W_M.c         ****   st->t_giro = 10;
+ 121:W_M.c         **** }
+ 122:W_M.c         **** 
+ 123:W_M.c         **** static void fsm_lavagem_init(fsm_lavagem_s *st)
+ 124:W_M.c         **** {
+ 125:W_M.c         ****   st->lvg = RODAR_LVG;
+ 126:W_M.c         ****   st->turns = 0;
+ 127:W_M.c         ****   st->t_espera = 2;
+ 128:W_M.c         ****   st->t_giros = 12;
+ 129:W_M.c         ****   st->instante = chVTGetSystemTime();
+ 130:W_M.c         ****   st->ul_espera = st->instante;
+ 131:W_M.c         **** }
+ 132:W_M.c         **** 
+ 133:W_M.c         **** static void fsm_enxague_init(fsm_enxague_s *st)
+ 134:W_M.c         **** {
+ 135:W_M.c         ****   st->exg = ENCHER_EXG;
+ 136:W_M.c         ****   st->t_giro = 15;
+ 137:W_M.c         **** }
+ 138:W_M.c         **** 
+ 139:W_M.c         **** static void fsm_centrifuga_init(fsm_centrifuga_s *st)
+ 140:W_M.c         **** {
+ 141:W_M.c         ****   st->cen = GIRA_R_CENTRI;
+ 142:W_M.c         ****   st->tempo = chVTGetSystemTime();
+ 143:W_M.c         ****   st->ul_centri = st->tempo;
+ 144:W_M.c         ****   st->t_centri = 20;
+ 145:W_M.c         **** }
+ 146:W_M.c         **** 
+ 147:W_M.c         **** 
+ 148:W_M.c         **** /* Variables of the states */
+ 149:W_M.c         **** fsm_parada_s fsm_prd;
+ 150:W_M.c         **** 
+ 151:W_M.c         **** fsm_molho_s fsm_ml;
+ 152:W_M.c         **** 
+ 153:W_M.c         **** fsm_lavagem_s fsm_lvg;
+ 154:W_M.c         **** 
+ 155:W_M.c         **** fsm_enxague_s fsm_exg;
+ 156:W_M.c         **** 
+ 157:W_M.c         **** fsm_centrifuga_s fsm_cen;
+ 158:W_M.c         **** 
+ 159:W_M.c         **** 
+ 160:W_M.c         **** /* Functions*/
+ 161:W_M.c         **** void starting(){
+  19               		.loc 1 161 0
+  20               		.cfi_startproc
+  21               	/* prologue: function */
+  22               	/* frame size = 0 */
+  23               	/* stack size = 0 */
+  24               	.L__stack_usage = 0
+ 162:W_M.c         ****   // Output
+ 163:W_M.c         ****   palSetPadMode(IOPORT2, SECA_ID, PAL_MODE_OUTPUT_PUSHPULL);
+  25               		.loc 1 163 0
+  26 0000 46E0      		ldi r20,lo8(6)
+  27 0002 60E2      		ldi r22,lo8(32)
+  28 0004 83E2      		ldi r24,lo8(35)
+  29 0006 90E0      		ldi r25,0
+  30 0008 0E94 0000 		call _pal_lld_setgroupmode
+  31               	.LVL0:
+ 164:W_M.c         ****   palSetPadMode(IOPORT2, ENCHE_ID, PAL_MODE_OUTPUT_PUSHPULL);
+  32               		.loc 1 164 0
+  33 000c 46E0      		ldi r20,lo8(6)
+  34 000e 60E1      		ldi r22,lo8(16)
+  35 0010 83E2      		ldi r24,lo8(35)
+  36 0012 90E0      		ldi r25,0
+  37 0014 0E94 0000 		call _pal_lld_setgroupmode
+  38               	.LVL1:
+ 165:W_M.c         ****   palSetPadMode(IOPORT2, CENTRI_ID, PAL_MODE_OUTPUT_PUSHPULL);
+  39               		.loc 1 165 0
+  40 0018 46E0      		ldi r20,lo8(6)
+  41 001a 68E0      		ldi r22,lo8(8)
+  42 001c 83E2      		ldi r24,lo8(35)
+  43 001e 90E0      		ldi r25,0
+  44 0020 0E94 0000 		call _pal_lld_setgroupmode
+  45               	.LVL2:
+ 166:W_M.c         ****   palSetPadMode(IOPORT2, ENXAGUE_ID, PAL_MODE_OUTPUT_PUSHPULL);
+  46               		.loc 1 166 0
+  47 0024 46E0      		ldi r20,lo8(6)
+  48 0026 64E0      		ldi r22,lo8(4)
+  49 0028 83E2      		ldi r24,lo8(35)
+  50 002a 90E0      		ldi r25,0
+  51 002c 0E94 0000 		call _pal_lld_setgroupmode
+  52               	.LVL3:
+ 167:W_M.c         ****   palSetPadMode(IOPORT2, LAVAGEM_ID, PAL_MODE_OUTPUT_PUSHPULL);
+  53               		.loc 1 167 0
+  54 0030 46E0      		ldi r20,lo8(6)
+  55 0032 62E0      		ldi r22,lo8(2)
+  56 0034 83E2      		ldi r24,lo8(35)
+  57 0036 90E0      		ldi r25,0
+  58 0038 0E94 0000 		call _pal_lld_setgroupmode
+  59               	.LVL4:
+ 168:W_M.c         ****   palSetPadMode(IOPORT2, MOLHO_ID, PAL_MODE_OUTPUT_PUSHPULL);
+  60               		.loc 1 168 0
+  61 003c 46E0      		ldi r20,lo8(6)
+  62 003e 61E0      		ldi r22,lo8(1)
+  63 0040 83E2      		ldi r24,lo8(35)
+  64 0042 90E0      		ldi r25,0
+  65 0044 0E94 0000 		call _pal_lld_setgroupmode
+  66               	.LVL5:
+ 169:W_M.c         ****   palSetPadMode(IOPORT3, MOTOR_DIR, PAL_MODE_OUTPUT_PUSHPULL);
+  67               		.loc 1 169 0
+  68 0048 46E0      		ldi r20,lo8(6)
+  69 004a 61E0      		ldi r22,lo8(1)
+  70 004c 86E2      		ldi r24,lo8(38)
+  71 004e 90E0      		ldi r25,0
+  72 0050 0E94 0000 		call _pal_lld_setgroupmode
+  73               	.LVL6:
+ 170:W_M.c         ****   palSetPadMode(IOPORT3, MOTOR_ESQ, PAL_MODE_OUTPUT_PUSHPULL);
+  74               		.loc 1 170 0
+  75 0054 46E0      		ldi r20,lo8(6)
+  76 0056 62E0      		ldi r22,lo8(2)
+  77 0058 86E2      		ldi r24,lo8(38)
+  78 005a 90E0      		ldi r25,0
+  79 005c 0E94 0000 		call _pal_lld_setgroupmode
+  80               	.LVL7:
+ 171:W_M.c         ****   palSetPadMode(IOPORT4, PARADA_ID, PAL_MODE_OUTPUT_PUSHPULL);
+  81               		.loc 1 171 0
+  82 0060 46E0      		ldi r20,lo8(6)
+  83 0062 60E8      		ldi r22,lo8(-128)
+  84 0064 89E2      		ldi r24,lo8(41)
+  85 0066 90E0      		ldi r25,0
+  86 0068 0E94 0000 		call _pal_lld_setgroupmode
+  87               	.LVL8:
+ 172:W_M.c         **** 
+ 173:W_M.c         **** 
+ 174:W_M.c         ****   // Input
+ 175:W_M.c         ****   palSetPadMode(IOPORT4, EMER, PAL_MODE_INPUT);
+  88               		.loc 1 175 0
+  89 006c 42E0      		ldi r20,lo8(2)
+  90 006e 64E0      		ldi r22,lo8(4)
+  91 0070 89E2      		ldi r24,lo8(41)
+  92 0072 90E0      		ldi r25,0
+  93 0074 0E94 0000 		call _pal_lld_setgroupmode
+  94               	.LVL9:
+ 176:W_M.c         ****   palSetPadMode(IOPORT4, SEN_VAZIO, PAL_MODE_INPUT);
+  95               		.loc 1 176 0
+  96 0078 42E0      		ldi r20,lo8(2)
+  97 007a 68E0      		ldi r22,lo8(8)
+  98 007c 89E2      		ldi r24,lo8(41)
+  99 007e 90E0      		ldi r25,0
+ 100 0080 0E94 0000 		call _pal_lld_setgroupmode
+ 101               	.LVL10:
+ 177:W_M.c         ****   palSetPadMode(IOPORT4, SEN_CHEIO, PAL_MODE_INPUT);
+ 102               		.loc 1 177 0
+ 103 0084 42E0      		ldi r20,lo8(2)
+ 104 0086 60E1      		ldi r22,lo8(16)
+ 105 0088 89E2      		ldi r24,lo8(41)
+ 106 008a 90E0      		ldi r25,0
+ 107 008c 0E94 0000 		call _pal_lld_setgroupmode
+ 108               	.LVL11:
+ 178:W_M.c         ****   palSetPadMode(IOPORT4, BOT_INIT, PAL_MODE_INPUT);
+ 109               		.loc 1 178 0
+ 110 0090 42E0      		ldi r20,lo8(2)
+ 111 0092 60E2      		ldi r22,lo8(32)
+ 112 0094 89E2      		ldi r24,lo8(41)
+ 113 0096 90E0      		ldi r25,0
+ 114 0098 0E94 0000 		call _pal_lld_setgroupmode
+ 115               	.LVL12:
+ 179:W_M.c         ****   palSetPadMode(IOPORT4, BOT_SELECT, PAL_MODE_INPUT);
+ 116               		.loc 1 179 0
+ 117 009c 42E0      		ldi r20,lo8(2)
+ 118 009e 60E4      		ldi r22,lo8(64)
+ 119 00a0 89E2      		ldi r24,lo8(41)
+ 120 00a2 90E0      		ldi r25,0
+ 121 00a4 0E94 0000 		call _pal_lld_setgroupmode
+ 122               	.LVL13:
+ 180:W_M.c         **** 
+ 181:W_M.c         ****   // Start
+ 182:W_M.c         ****   palClearPad(IOPORT2, SECA_ID);
+ 123               		.loc 1 182 0
+ 124 00a8 2D98      		cbi 0x5,5
+ 183:W_M.c         ****   palClearPad(IOPORT2, ENCHE_ID);
+ 125               		.loc 1 183 0
+ 126 00aa 2C98      		cbi 0x5,4
+ 184:W_M.c         ****   palClearPad(IOPORT2, CENTRI_ID);
+ 127               		.loc 1 184 0
+ 128 00ac 2B98      		cbi 0x5,3
+ 185:W_M.c         ****   palClearPad(IOPORT2, ENXAGUE_ID);
+ 129               		.loc 1 185 0
+ 130 00ae 2A98      		cbi 0x5,2
+ 186:W_M.c         ****   palClearPad(IOPORT2, LAVAGEM_ID);
+ 131               		.loc 1 186 0
+ 132 00b0 2998      		cbi 0x5,1
+ 187:W_M.c         ****   palClearPad(IOPORT2, MOLHO_ID);
+ 133               		.loc 1 187 0
+ 134 00b2 2898      		cbi 0x5,0
+ 188:W_M.c         ****   palClearPad(IOPORT3, MOTOR_DIR);
+ 135               		.loc 1 188 0
+ 136 00b4 4098      		cbi 0x8,0
+ 189:W_M.c         ****   palClearPad(IOPORT3, MOTOR_ESQ);
+ 137               		.loc 1 189 0
+ 138 00b6 4198      		cbi 0x8,1
+ 190:W_M.c         ****   palClearPad(IOPORT4, PARADA_ID);
+ 139               		.loc 1 190 0
+ 140 00b8 5F98      		cbi 0xb,7
+ 191:W_M.c         **** 
+ 192:W_M.c         ****   chprintf((BaseSequentialStream *)&SD1, "pinos iniciados \n\r");
+ 141               		.loc 1 192 0
+ 142 00ba 80E0      		ldi r24,lo8(.LC0)
+ 143 00bc 90E0      		ldi r25,hi8(.LC0)
+ 144 00be 9F93      		push r25
+ 145               	.LCFI0:
+ 146               		.cfi_def_cfa_offset 3
+ 147 00c0 8F93      		push r24
+ 148               	.LCFI1:
+ 149               		.cfi_def_cfa_offset 4
+ 150 00c2 80E0      		ldi r24,lo8(SD1)
+ 151 00c4 90E0      		ldi r25,hi8(SD1)
+ 152 00c6 9F93      		push r25
+ 153               	.LCFI2:
+ 154               		.cfi_def_cfa_offset 5
+ 155 00c8 8F93      		push r24
+ 156               	.LCFI3:
+ 157               		.cfi_def_cfa_offset 6
+ 158 00ca 0E94 0000 		call chprintf
+ 159               	.LVL14:
+ 193:W_M.c         **** 
+ 194:W_M.c         **** }
+ 160               		.loc 1 194 0
+ 161 00ce 0F90      		pop __tmp_reg__
+ 162 00d0 0F90      		pop __tmp_reg__
+ 163 00d2 0F90      		pop __tmp_reg__
+ 164 00d4 0F90      		pop __tmp_reg__
+ 165               	.LCFI4:
+ 166               		.cfi_def_cfa_offset 2
+ 167 00d6 0895      		ret
+ 168               		.cfi_endproc
+ 169               	.LFE172:
+ 171               		.section	.text.spinning,"ax",@progbits
+ 172               	.global	spinning
+ 174               	spinning:
+ 175               	.LFB173:
+ 195:W_M.c         **** 
+ 196:W_M.c         **** 
+ 197:W_M.c         **** /* Spin Function */
+ 198:W_M.c         **** 
+ 199:W_M.c         **** void spinning(int timer) {
+ 176               		.loc 1 199 0
+ 177               		.cfi_startproc
+ 178               	.LVL15:
+ 179               	/* prologue: function */
+ 180               	/* frame size = 0 */
+ 181               	/* stack size = 0 */
+ 182               	.L__stack_usage = 0
+ 183               	.LBB134:
+ 184               	.LBB135:
+ 185               	.LBB136:
+ 186               	.LBB137:
+ 187               	.LBB138:
+ 188               		.file 2 "../../../os/common/ports/AVR/chcore.h"
+   1:../../../os/common/ports/AVR/chcore.h **** /*
+   2:../../../os/common/ports/AVR/chcore.h ****     ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio.
+   3:../../../os/common/ports/AVR/chcore.h **** 
+   4:../../../os/common/ports/AVR/chcore.h ****     This file is part of ChibiOS.
+   5:../../../os/common/ports/AVR/chcore.h **** 
+   6:../../../os/common/ports/AVR/chcore.h ****     ChibiOS is free software; you can redistribute it and/or modify
+   7:../../../os/common/ports/AVR/chcore.h ****     it under the terms of the GNU General Public License as published by
+   8:../../../os/common/ports/AVR/chcore.h ****     the Free Software Foundation; either version 3 of the License, or
+   9:../../../os/common/ports/AVR/chcore.h ****     (at your option) any later version.
+  10:../../../os/common/ports/AVR/chcore.h **** 
+  11:../../../os/common/ports/AVR/chcore.h ****     ChibiOS is distributed in the hope that it will be useful,
+  12:../../../os/common/ports/AVR/chcore.h ****     but WITHOUT ANY WARRANTY; without even the implied warranty of
+  13:../../../os/common/ports/AVR/chcore.h ****     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  14:../../../os/common/ports/AVR/chcore.h ****     GNU General Public License for more details.
+  15:../../../os/common/ports/AVR/chcore.h **** 
+  16:../../../os/common/ports/AVR/chcore.h ****     You should have received a copy of the GNU General Public License
+  17:../../../os/common/ports/AVR/chcore.h ****     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  18:../../../os/common/ports/AVR/chcore.h **** */
+  19:../../../os/common/ports/AVR/chcore.h **** 
+  20:../../../os/common/ports/AVR/chcore.h **** /**
+  21:../../../os/common/ports/AVR/chcore.h ****  * @file    templates/chcore.h
+  22:../../../os/common/ports/AVR/chcore.h ****  * @brief   Port related template macros and structures.
+  23:../../../os/common/ports/AVR/chcore.h ****  * @details This file is a template of the system driver macros provided by
+  24:../../../os/common/ports/AVR/chcore.h ****  *          a port.
+  25:../../../os/common/ports/AVR/chcore.h ****  *
+  26:../../../os/common/ports/AVR/chcore.h ****  * @addtogroup core
+  27:../../../os/common/ports/AVR/chcore.h ****  * @{
+  28:../../../os/common/ports/AVR/chcore.h ****  */
+  29:../../../os/common/ports/AVR/chcore.h **** 
+  30:../../../os/common/ports/AVR/chcore.h **** #ifndef CHCORE_H
+  31:../../../os/common/ports/AVR/chcore.h **** #define CHCORE_H
+  32:../../../os/common/ports/AVR/chcore.h **** 
+  33:../../../os/common/ports/AVR/chcore.h **** #include <avr/io.h>
+  34:../../../os/common/ports/AVR/chcore.h **** #include <avr/interrupt.h>
+  35:../../../os/common/ports/AVR/chcore.h **** 
+  36:../../../os/common/ports/AVR/chcore.h **** extern bool __avr_in_isr;
+  37:../../../os/common/ports/AVR/chcore.h **** 
+  38:../../../os/common/ports/AVR/chcore.h **** /*===========================================================================*/
+  39:../../../os/common/ports/AVR/chcore.h **** /* Module constants.                                                         */
+  40:../../../os/common/ports/AVR/chcore.h **** /*===========================================================================*/
+  41:../../../os/common/ports/AVR/chcore.h **** 
+  42:../../../os/common/ports/AVR/chcore.h **** /**
+  43:../../../os/common/ports/AVR/chcore.h ****  * @name    Port Capabilities and Constants
+  44:../../../os/common/ports/AVR/chcore.h ****  * @{
+  45:../../../os/common/ports/AVR/chcore.h ****  */
+  46:../../../os/common/ports/AVR/chcore.h **** /**
+  47:../../../os/common/ports/AVR/chcore.h ****  * @brief   This port supports a realtime counter.
+  48:../../../os/common/ports/AVR/chcore.h ****  */
+  49:../../../os/common/ports/AVR/chcore.h **** #define PORT_SUPPORTS_RT                FALSE
+  50:../../../os/common/ports/AVR/chcore.h **** 
+  51:../../../os/common/ports/AVR/chcore.h **** /**
+  52:../../../os/common/ports/AVR/chcore.h ****  * @brief   Natural alignment constant.
+  53:../../../os/common/ports/AVR/chcore.h ****  * @note    It is the minimum alignment for pointer-size variables.
+  54:../../../os/common/ports/AVR/chcore.h ****  */
+  55:../../../os/common/ports/AVR/chcore.h **** #define PORT_NATURAL_ALIGN              1U
+  56:../../../os/common/ports/AVR/chcore.h **** 
+  57:../../../os/common/ports/AVR/chcore.h **** /**
+  58:../../../os/common/ports/AVR/chcore.h ****  * @brief   Stack alignment constant.
+  59:../../../os/common/ports/AVR/chcore.h ****  * @note    It is the alignement required for the stack pointer.
+  60:../../../os/common/ports/AVR/chcore.h ****  */
+  61:../../../os/common/ports/AVR/chcore.h **** #define PORT_STACK_ALIGN                1U
+  62:../../../os/common/ports/AVR/chcore.h **** 
+  63:../../../os/common/ports/AVR/chcore.h **** /**
+  64:../../../os/common/ports/AVR/chcore.h ****  * @brief   Working Areas alignment constant.
+  65:../../../os/common/ports/AVR/chcore.h ****  * @note    It is the alignment to be enforced for thread working areas.
+  66:../../../os/common/ports/AVR/chcore.h ****  */
+  67:../../../os/common/ports/AVR/chcore.h **** #define PORT_WORKING_AREA_ALIGN         1U
+  68:../../../os/common/ports/AVR/chcore.h **** /** @} */
+  69:../../../os/common/ports/AVR/chcore.h **** 
+  70:../../../os/common/ports/AVR/chcore.h **** /**
+  71:../../../os/common/ports/AVR/chcore.h ****  * @name    Architecture and Compiler
+  72:../../../os/common/ports/AVR/chcore.h ****  * @{
+  73:../../../os/common/ports/AVR/chcore.h ****  */
+  74:../../../os/common/ports/AVR/chcore.h **** /**
+  75:../../../os/common/ports/AVR/chcore.h ****  * @brief   Macro defining an AVR architecture.
+  76:../../../os/common/ports/AVR/chcore.h ****  */
+  77:../../../os/common/ports/AVR/chcore.h **** #define PORT_ARCHITECTURE_AVR
+  78:../../../os/common/ports/AVR/chcore.h **** 
+  79:../../../os/common/ports/AVR/chcore.h **** /**
+  80:../../../os/common/ports/AVR/chcore.h ****  * @brief   Macro defining the specific AVR architecture.
+  81:../../../os/common/ports/AVR/chcore.h ****  */
+  82:../../../os/common/ports/AVR/chcore.h **** #define PORT_ARCHITECTURE_AVR_MEGAAVR
+  83:../../../os/common/ports/AVR/chcore.h **** 
+  84:../../../os/common/ports/AVR/chcore.h **** /**
+  85:../../../os/common/ports/AVR/chcore.h ****  * @brief   Name of the implemented architecture.
+  86:../../../os/common/ports/AVR/chcore.h ****  */
+  87:../../../os/common/ports/AVR/chcore.h **** #define PORT_ARCHITECTURE_NAME          "MegaAVR"
+  88:../../../os/common/ports/AVR/chcore.h **** 
+  89:../../../os/common/ports/AVR/chcore.h **** /**
+  90:../../../os/common/ports/AVR/chcore.h ****  * @brief   Compiler name and version.
+  91:../../../os/common/ports/AVR/chcore.h ****  */
+  92:../../../os/common/ports/AVR/chcore.h **** #if defined(__GNUC__) || defined(__DOXYGEN__)
+  93:../../../os/common/ports/AVR/chcore.h **** #define PORT_COMPILER_NAME              "GCC " __VERSION__
+  94:../../../os/common/ports/AVR/chcore.h **** 
+  95:../../../os/common/ports/AVR/chcore.h **** #else
+  96:../../../os/common/ports/AVR/chcore.h **** #error "unsupported compiler"
+  97:../../../os/common/ports/AVR/chcore.h **** #endif
+  98:../../../os/common/ports/AVR/chcore.h **** 
+  99:../../../os/common/ports/AVR/chcore.h **** /**
+ 100:../../../os/common/ports/AVR/chcore.h ****  * @brief   Port-specific information string.
+ 101:../../../os/common/ports/AVR/chcore.h ****  */
+ 102:../../../os/common/ports/AVR/chcore.h **** #define PORT_INFO                       "None"
+ 103:../../../os/common/ports/AVR/chcore.h **** /** @} */
+ 104:../../../os/common/ports/AVR/chcore.h **** 
+ 105:../../../os/common/ports/AVR/chcore.h **** /*===========================================================================*/
+ 106:../../../os/common/ports/AVR/chcore.h **** /* Module pre-compile time settings.                                         */
+ 107:../../../os/common/ports/AVR/chcore.h **** /*===========================================================================*/
+ 108:../../../os/common/ports/AVR/chcore.h **** 
+ 109:../../../os/common/ports/AVR/chcore.h **** /**
+ 110:../../../os/common/ports/AVR/chcore.h ****  * @brief   Stack size for the system idle thread.
+ 111:../../../os/common/ports/AVR/chcore.h ****  * @details This size depends on the idle thread implementation, usually
+ 112:../../../os/common/ports/AVR/chcore.h ****  *          the idle thread should take no more space than those reserved
+ 113:../../../os/common/ports/AVR/chcore.h ****  *          by @p PORT_INT_REQUIRED_STACK.
+ 114:../../../os/common/ports/AVR/chcore.h ****  */
+ 115:../../../os/common/ports/AVR/chcore.h **** #if !defined(PORT_IDLE_THREAD_STACK_SIZE) || defined(__DOXYGEN__)
+ 116:../../../os/common/ports/AVR/chcore.h **** #define PORT_IDLE_THREAD_STACK_SIZE     8
+ 117:../../../os/common/ports/AVR/chcore.h **** #endif
+ 118:../../../os/common/ports/AVR/chcore.h **** 
+ 119:../../../os/common/ports/AVR/chcore.h **** /**
+ 120:../../../os/common/ports/AVR/chcore.h ****  * @brief   Per-thread stack overhead for interrupts servicing.
+ 121:../../../os/common/ports/AVR/chcore.h ****  * @details This constant is used in the calculation of the correct working
+ 122:../../../os/common/ports/AVR/chcore.h ****  *          area size.
+ 123:../../../os/common/ports/AVR/chcore.h ****  */
+ 124:../../../os/common/ports/AVR/chcore.h **** #if !defined(PORT_INT_REQUIRED_STACK) || defined(__DOXYGEN__)
+ 125:../../../os/common/ports/AVR/chcore.h **** #define PORT_INT_REQUIRED_STACK         32
+ 126:../../../os/common/ports/AVR/chcore.h **** #endif
+ 127:../../../os/common/ports/AVR/chcore.h **** 
+ 128:../../../os/common/ports/AVR/chcore.h **** /**
+ 129:../../../os/common/ports/AVR/chcore.h ****  * @brief   Enables an alternative timer implementation.
+ 130:../../../os/common/ports/AVR/chcore.h ****  * @details Usually the port uses a timer interface defined in the file
+ 131:../../../os/common/ports/AVR/chcore.h ****  *          @p chcore_timer.h, if this option is enabled then the file
+ 132:../../../os/common/ports/AVR/chcore.h ****  *          @p chcore_timer_alt.h is included instead.
+ 133:../../../os/common/ports/AVR/chcore.h ****  */
+ 134:../../../os/common/ports/AVR/chcore.h **** #if !defined(PORT_USE_ALT_TIMER) || defined(__DOXYGEN__)
+ 135:../../../os/common/ports/AVR/chcore.h **** #define PORT_USE_ALT_TIMER              FALSE
+ 136:../../../os/common/ports/AVR/chcore.h **** #endif
+ 137:../../../os/common/ports/AVR/chcore.h **** 
+ 138:../../../os/common/ports/AVR/chcore.h **** /**
+ 139:../../../os/common/ports/AVR/chcore.h ****  * @brief   Enables a "wait for interrupt" instruction in the idle loop.
+ 140:../../../os/common/ports/AVR/chcore.h ****  */
+ 141:../../../os/common/ports/AVR/chcore.h **** #if !defined(PORT_AVR_WFI_SLEEP_IDLE) || defined(__DOXYGEN__)
+ 142:../../../os/common/ports/AVR/chcore.h **** #define PORT_AVR_WFI_SLEEP_IDLE      FALSE
+ 143:../../../os/common/ports/AVR/chcore.h **** #endif
+ 144:../../../os/common/ports/AVR/chcore.h **** 
+ 145:../../../os/common/ports/AVR/chcore.h **** /*===========================================================================*/
+ 146:../../../os/common/ports/AVR/chcore.h **** /* Derived constants and error checks.                                       */
+ 147:../../../os/common/ports/AVR/chcore.h **** /*===========================================================================*/
+ 148:../../../os/common/ports/AVR/chcore.h **** 
+ 149:../../../os/common/ports/AVR/chcore.h **** /*===========================================================================*/
+ 150:../../../os/common/ports/AVR/chcore.h **** /* Module data structures and types.                                         */
+ 151:../../../os/common/ports/AVR/chcore.h **** /*===========================================================================*/
+ 152:../../../os/common/ports/AVR/chcore.h **** 
+ 153:../../../os/common/ports/AVR/chcore.h **** /* The following code is not processed when the file is included from an
+ 154:../../../os/common/ports/AVR/chcore.h ****    asm module.*/
+ 155:../../../os/common/ports/AVR/chcore.h **** #if !defined(_FROM_ASM_)
+ 156:../../../os/common/ports/AVR/chcore.h **** 
+ 157:../../../os/common/ports/AVR/chcore.h **** /**
+ 158:../../../os/common/ports/AVR/chcore.h ****  * @brief   Type of stack and memory alignment enforcement.
+ 159:../../../os/common/ports/AVR/chcore.h ****  * @note    In this architecture the stack alignment is enforced to 8 bits.
+ 160:../../../os/common/ports/AVR/chcore.h ****  */
+ 161:../../../os/common/ports/AVR/chcore.h **** typedef uint8_t stkalign_t;
+ 162:../../../os/common/ports/AVR/chcore.h **** 
+ 163:../../../os/common/ports/AVR/chcore.h **** /**
+ 164:../../../os/common/ports/AVR/chcore.h ****  * @brief   Interrupt saved context.
+ 165:../../../os/common/ports/AVR/chcore.h ****  * @details This structure represents the stack frame saved during a
+ 166:../../../os/common/ports/AVR/chcore.h ****  *          preemption-capable interrupt handler.
+ 167:../../../os/common/ports/AVR/chcore.h ****  * @note    R2 and R13 are not saved because those are assumed to be immutable
+ 168:../../../os/common/ports/AVR/chcore.h ****  *          during the system life cycle.
+ 169:../../../os/common/ports/AVR/chcore.h ****  */
+ 170:../../../os/common/ports/AVR/chcore.h **** struct port_extctx {
+ 171:../../../os/common/ports/AVR/chcore.h ****   uint8_t       _next;
+ 172:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r31;
+ 173:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r30;
+ 174:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r27;
+ 175:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r26;
+ 176:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r25;
+ 177:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r24;
+ 178:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r23;
+ 179:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r22;
+ 180:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r21;
+ 181:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r20;
+ 182:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r19;
+ 183:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r18;
+ 184:../../../os/common/ports/AVR/chcore.h ****   uint8_t       sr;
+ 185:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r1;
+ 186:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r0;
+ 187:../../../os/common/ports/AVR/chcore.h **** #if defined(__AVR_3_BYTE_PC__)
+ 188:../../../os/common/ports/AVR/chcore.h ****   uint8_t       pcx;
+ 189:../../../os/common/ports/AVR/chcore.h **** #endif
+ 190:../../../os/common/ports/AVR/chcore.h ****   uint16_t      pc;
+ 191:../../../os/common/ports/AVR/chcore.h **** };
+ 192:../../../os/common/ports/AVR/chcore.h **** 
+ 193:../../../os/common/ports/AVR/chcore.h **** /**
+ 194:../../../os/common/ports/AVR/chcore.h ****  * @brief   System saved context.
+ 195:../../../os/common/ports/AVR/chcore.h ****  * @details This structure represents the inner stack frame during a context
+ 196:../../../os/common/ports/AVR/chcore.h ****  *          switching.
+ 197:../../../os/common/ports/AVR/chcore.h ****  * @note    R2 and R13 are not saved because those are assumed to be immutable
+ 198:../../../os/common/ports/AVR/chcore.h ****  *          during the system life cycle.
+ 199:../../../os/common/ports/AVR/chcore.h ****  * @note    LR is stored in the caller context so it is not present in this
+ 200:../../../os/common/ports/AVR/chcore.h ****  *          structure.
+ 201:../../../os/common/ports/AVR/chcore.h ****  */
+ 202:../../../os/common/ports/AVR/chcore.h **** struct port_intctx {
+ 203:../../../os/common/ports/AVR/chcore.h ****   uint8_t       _next;
+ 204:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r29;
+ 205:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r28;
+ 206:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r17;
+ 207:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r16;
+ 208:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r15;
+ 209:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r14;
+ 210:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r13;
+ 211:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r12;
+ 212:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r11;
+ 213:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r10;
+ 214:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r9;
+ 215:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r8;
+ 216:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r7;
+ 217:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r6;
+ 218:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r5;
+ 219:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r4;
+ 220:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r3;
+ 221:../../../os/common/ports/AVR/chcore.h ****   uint8_t       r2;
+ 222:../../../os/common/ports/AVR/chcore.h **** #if defined(__AVR_3_BYTE_PC__)
+ 223:../../../os/common/ports/AVR/chcore.h ****   uint8_t       pcx;
+ 224:../../../os/common/ports/AVR/chcore.h **** #endif
+ 225:../../../os/common/ports/AVR/chcore.h ****   uint8_t       pcl;
+ 226:../../../os/common/ports/AVR/chcore.h ****   uint8_t       pch;
+ 227:../../../os/common/ports/AVR/chcore.h **** };
+ 228:../../../os/common/ports/AVR/chcore.h **** 
+ 229:../../../os/common/ports/AVR/chcore.h **** /**
+ 230:../../../os/common/ports/AVR/chcore.h ****  * @brief   Platform dependent part of the @p thread_t structure.
+ 231:../../../os/common/ports/AVR/chcore.h ****  * @details This structure usually contains just the saved stack pointer
+ 232:../../../os/common/ports/AVR/chcore.h ****  *          defined as a pointer to a @p port_intctx structure.
+ 233:../../../os/common/ports/AVR/chcore.h ****  */
+ 234:../../../os/common/ports/AVR/chcore.h **** struct port_context {
+ 235:../../../os/common/ports/AVR/chcore.h ****   struct port_intctx *sp;
+ 236:../../../os/common/ports/AVR/chcore.h **** };
+ 237:../../../os/common/ports/AVR/chcore.h **** 
+ 238:../../../os/common/ports/AVR/chcore.h **** #endif /* !defined(_FROM_ASM_) */
+ 239:../../../os/common/ports/AVR/chcore.h **** 
+ 240:../../../os/common/ports/AVR/chcore.h **** /*===========================================================================*/
+ 241:../../../os/common/ports/AVR/chcore.h **** /* Module macros.                                                            */
+ 242:../../../os/common/ports/AVR/chcore.h **** /*===========================================================================*/
+ 243:../../../os/common/ports/AVR/chcore.h **** 
+ 244:../../../os/common/ports/AVR/chcore.h **** /**
+ 245:../../../os/common/ports/AVR/chcore.h ****  * @brief   Platform dependent part of the @p chThdCreateI() API.
+ 246:../../../os/common/ports/AVR/chcore.h ****  * @details This code usually setup the context switching frame represented
+ 247:../../../os/common/ports/AVR/chcore.h ****  *          by an @p port_intctx structure.
+ 248:../../../os/common/ports/AVR/chcore.h ****  */
+ 249:../../../os/common/ports/AVR/chcore.h **** #if defined(__AVR_3_BYTE_PC__) || defined(__DOXYGEN__)
+ 250:../../../os/common/ports/AVR/chcore.h **** #define PORT_SETUP_CONTEXT(tp, wbase, wtop, pf, arg) {                      \
+ 251:../../../os/common/ports/AVR/chcore.h ****   tp->ctx.sp = (struct port_intctx *)((uint8_t *)(wtop) -                   \
+ 252:../../../os/common/ports/AVR/chcore.h ****                                       sizeof(struct port_intctx));          \
+ 253:../../../os/common/ports/AVR/chcore.h ****   tp->ctx.sp->r2  = (uint8_t)(0xff & (uint16_t)pf);                         \
+ 254:../../../os/common/ports/AVR/chcore.h ****   tp->ctx.sp->r3  = (uint8_t)((uint16_t)(pf) >> 8);                         \
+ 255:../../../os/common/ports/AVR/chcore.h ****   tp->ctx.sp->r4  = (uint8_t)(0xff & (uint16_t)arg);                        \
+ 256:../../../os/common/ports/AVR/chcore.h ****   tp->ctx.sp->r5  = (uint8_t)((uint16_t)(arg) >> 8);                        \
+ 257:../../../os/common/ports/AVR/chcore.h ****   tp->ctx.sp->pcx = (uint8_t)0;                                             \
+ 258:../../../os/common/ports/AVR/chcore.h ****   tp->ctx.sp->pcl = (uint16_t)_port_thread_start >> 8;                      \
+ 259:../../../os/common/ports/AVR/chcore.h ****   tp->ctx.sp->pch = (uint8_t)(0xff & (uint16_t)_port_thread_start);         \
+ 260:../../../os/common/ports/AVR/chcore.h **** }
+ 261:../../../os/common/ports/AVR/chcore.h **** #else /* !__AVR_3_BYTE_PC__ */
+ 262:../../../os/common/ports/AVR/chcore.h **** #define PORT_SETUP_CONTEXT(tp, wbase, wtop, pf, arg) {                      \
+ 263:../../../os/common/ports/AVR/chcore.h ****   tp->ctx.sp = (struct port_intctx *)((uint8_t *)(wtop) -                   \
+ 264:../../../os/common/ports/AVR/chcore.h ****                                       sizeof(struct port_intctx));          \
+ 265:../../../os/common/ports/AVR/chcore.h ****   tp->ctx.sp->r2  = (uint8_t)(0xff & (uint16_t)pf);                         \
+ 266:../../../os/common/ports/AVR/chcore.h ****   tp->ctx.sp->r3  = (uint8_t)((uint16_t)(pf) >> 8);                         \
+ 267:../../../os/common/ports/AVR/chcore.h ****   tp->ctx.sp->r4  = (uint8_t)(0xff & (uint16_t)arg);                        \
+ 268:../../../os/common/ports/AVR/chcore.h ****   tp->ctx.sp->r5  = (uint8_t)((uint16_t)(arg) >> 8);                        \
+ 269:../../../os/common/ports/AVR/chcore.h ****   tp->ctx.sp->pcl = (uint16_t)_port_thread_start >> 8;                      \
+ 270:../../../os/common/ports/AVR/chcore.h ****   tp->ctx.sp->pch = (uint8_t)(0xff & (uint16_t)_port_thread_start);         \
+ 271:../../../os/common/ports/AVR/chcore.h **** }
+ 272:../../../os/common/ports/AVR/chcore.h **** #endif /* !__AVR_3_BYTE_PC__ */
+ 273:../../../os/common/ports/AVR/chcore.h **** 
+ 274:../../../os/common/ports/AVR/chcore.h **** /**
+ 275:../../../os/common/ports/AVR/chcore.h ****  * @brief   Computes the thread working area global size.
+ 276:../../../os/common/ports/AVR/chcore.h ****  * @note    There is no need to perform alignments in this macro.
+ 277:../../../os/common/ports/AVR/chcore.h ****  */
+ 278:../../../os/common/ports/AVR/chcore.h **** #define PORT_WA_SIZE(n) ((sizeof(struct port_intctx) - 1) +                \
+ 279:../../../os/common/ports/AVR/chcore.h ****                          (sizeof(struct port_extctx) - 1) +                \
+ 280:../../../os/common/ports/AVR/chcore.h ****                          ((size_t)(n)) + ((size_t)(PORT_INT_REQUIRED_STACK)))
+ 281:../../../os/common/ports/AVR/chcore.h **** 
+ 282:../../../os/common/ports/AVR/chcore.h **** /**
+ 283:../../../os/common/ports/AVR/chcore.h ****  * @brief   Static working area allocation.
+ 284:../../../os/common/ports/AVR/chcore.h ****  * @details This macro is used to allocate a static thread working area
+ 285:../../../os/common/ports/AVR/chcore.h ****  *          aligned as both position and size.
+ 286:../../../os/common/ports/AVR/chcore.h ****  *
+ 287:../../../os/common/ports/AVR/chcore.h ****  * @param[in] s         the name to be assigned to the stack array
+ 288:../../../os/common/ports/AVR/chcore.h ****  * @param[in] n         the stack size to be assigned to the thread
+ 289:../../../os/common/ports/AVR/chcore.h ****  */
+ 290:../../../os/common/ports/AVR/chcore.h **** #define PORT_WORKING_AREA(s, n)                                             \
+ 291:../../../os/common/ports/AVR/chcore.h ****   stkalign_t s[THD_WORKING_AREA_SIZE(n) / sizeof (stkalign_t)]
+ 292:../../../os/common/ports/AVR/chcore.h **** 
+ 293:../../../os/common/ports/AVR/chcore.h **** /**
+ 294:../../../os/common/ports/AVR/chcore.h ****  * @brief   Priority level verification macro.
+ 295:../../../os/common/ports/AVR/chcore.h ****  */
+ 296:../../../os/common/ports/AVR/chcore.h **** #define PORT_IRQ_IS_VALID_PRIORITY(n) false
+ 297:../../../os/common/ports/AVR/chcore.h **** 
+ 298:../../../os/common/ports/AVR/chcore.h **** /**
+ 299:../../../os/common/ports/AVR/chcore.h ****  * @brief   Priority level verification macro.
+ 300:../../../os/common/ports/AVR/chcore.h ****  */
+ 301:../../../os/common/ports/AVR/chcore.h **** #define PORT_IRQ_IS_VALID_KERNEL_PRIORITY(n) false
+ 302:../../../os/common/ports/AVR/chcore.h **** 
+ 303:../../../os/common/ports/AVR/chcore.h **** /**
+ 304:../../../os/common/ports/AVR/chcore.h ****  * @brief   IRQ prologue code.
+ 305:../../../os/common/ports/AVR/chcore.h ****  * @details This macro must be inserted at the start of all IRQ handlers
+ 306:../../../os/common/ports/AVR/chcore.h ****  *          enabled to invoke system APIs.
+ 307:../../../os/common/ports/AVR/chcore.h ****  * @note    This code tricks the compiler to save all the specified registers
+ 308:../../../os/common/ports/AVR/chcore.h ****  *          by "touching" them.
+ 309:../../../os/common/ports/AVR/chcore.h ****  */
+ 310:../../../os/common/ports/AVR/chcore.h **** #define PORT_IRQ_PROLOGUE() {                                               \
+ 311:../../../os/common/ports/AVR/chcore.h ****   asm ("" : : : "r18", "r19", "r20", "r21", "r22", "r23", "r24",            \
+ 312:../../../os/common/ports/AVR/chcore.h ****                 "r25", "r26", "r27", "r30", "r31");                         \
+ 313:../../../os/common/ports/AVR/chcore.h ****   __avr_in_isr = true;                                                      \
+ 314:../../../os/common/ports/AVR/chcore.h **** }
+ 315:../../../os/common/ports/AVR/chcore.h **** 
+ 316:../../../os/common/ports/AVR/chcore.h **** /**
+ 317:../../../os/common/ports/AVR/chcore.h ****  * @brief   IRQ epilogue code.
+ 318:../../../os/common/ports/AVR/chcore.h ****  * @details This macro must be inserted at the end of all IRQ handlers
+ 319:../../../os/common/ports/AVR/chcore.h ****  *          enabled to invoke system APIs.
+ 320:../../../os/common/ports/AVR/chcore.h ****  */
+ 321:../../../os/common/ports/AVR/chcore.h **** #define PORT_IRQ_EPILOGUE() {                                               \
+ 322:../../../os/common/ports/AVR/chcore.h ****   __avr_in_isr = false;                                                     \
+ 323:../../../os/common/ports/AVR/chcore.h ****   _dbg_check_lock();                                                        \
+ 324:../../../os/common/ports/AVR/chcore.h ****   if (chSchIsPreemptionRequired())                                          \
+ 325:../../../os/common/ports/AVR/chcore.h ****     chSchDoReschedule();                                                    \
+ 326:../../../os/common/ports/AVR/chcore.h ****   _dbg_check_unlock();                                                      \
+ 327:../../../os/common/ports/AVR/chcore.h **** }
+ 328:../../../os/common/ports/AVR/chcore.h **** 
+ 329:../../../os/common/ports/AVR/chcore.h **** /**
+ 330:../../../os/common/ports/AVR/chcore.h ****  * @brief   IRQ handler function declaration.
+ 331:../../../os/common/ports/AVR/chcore.h ****  * @note    @p id can be a function name or a vector number depending on the
+ 332:../../../os/common/ports/AVR/chcore.h ****  *          port implementation.
+ 333:../../../os/common/ports/AVR/chcore.h ****  */
+ 334:../../../os/common/ports/AVR/chcore.h **** #define PORT_IRQ_HANDLER(id) ISR(id)
+ 335:../../../os/common/ports/AVR/chcore.h **** 
+ 336:../../../os/common/ports/AVR/chcore.h **** /**
+ 337:../../../os/common/ports/AVR/chcore.h ****  * @brief   Fast IRQ handler function declaration.
+ 338:../../../os/common/ports/AVR/chcore.h ****  * @note    @p id can be a function name or a vector number depending on the
+ 339:../../../os/common/ports/AVR/chcore.h ****  *          port implementation.
+ 340:../../../os/common/ports/AVR/chcore.h ****  */
+ 341:../../../os/common/ports/AVR/chcore.h **** #define PORT_FAST_IRQ_HANDLER(id) ISR(id)
+ 342:../../../os/common/ports/AVR/chcore.h **** 
+ 343:../../../os/common/ports/AVR/chcore.h **** /**
+ 344:../../../os/common/ports/AVR/chcore.h ****  * @brief   Performs a context switch between two threads.
+ 345:../../../os/common/ports/AVR/chcore.h ****  * @details This is the most critical code in any port, this function
+ 346:../../../os/common/ports/AVR/chcore.h ****  *          is responsible for the context switch between 2 threads.
+ 347:../../../os/common/ports/AVR/chcore.h ****  * @note    The implementation of this code affects <b>directly</b> the context
+ 348:../../../os/common/ports/AVR/chcore.h ****  *          switch performance so optimize here as much as you can.
+ 349:../../../os/common/ports/AVR/chcore.h ****  *
+ 350:../../../os/common/ports/AVR/chcore.h ****  * @param[in] ntp       the thread to be switched in
+ 351:../../../os/common/ports/AVR/chcore.h ****  * @param[in] otp       the thread to be switched out
+ 352:../../../os/common/ports/AVR/chcore.h ****  */
+ 353:../../../os/common/ports/AVR/chcore.h **** #define port_switch(ntp, otp) {                                             \
+ 354:../../../os/common/ports/AVR/chcore.h ****   _port_switch(ntp, otp);                                                   \
+ 355:../../../os/common/ports/AVR/chcore.h ****   asm volatile ("" : : : "memory");                                         \
+ 356:../../../os/common/ports/AVR/chcore.h **** }
+ 357:../../../os/common/ports/AVR/chcore.h **** 
+ 358:../../../os/common/ports/AVR/chcore.h **** 
+ 359:../../../os/common/ports/AVR/chcore.h **** /**
+ 360:../../../os/common/ports/AVR/chcore.h ****  * @brief   Port-related initialization code.
+ 361:../../../os/common/ports/AVR/chcore.h ****  * @note    This function is empty in this port.
+ 362:../../../os/common/ports/AVR/chcore.h ****  */
+ 363:../../../os/common/ports/AVR/chcore.h **** #define port_init() {                                                       \
+ 364:../../../os/common/ports/AVR/chcore.h ****   __avr_in_isr = true;                                                      \
+ 365:../../../os/common/ports/AVR/chcore.h **** }
+ 366:../../../os/common/ports/AVR/chcore.h **** 
+ 367:../../../os/common/ports/AVR/chcore.h **** /*===========================================================================*/
+ 368:../../../os/common/ports/AVR/chcore.h **** /* External declarations.                                                    */
+ 369:../../../os/common/ports/AVR/chcore.h **** /*===========================================================================*/
+ 370:../../../os/common/ports/AVR/chcore.h **** 
+ 371:../../../os/common/ports/AVR/chcore.h **** /* The following code is not processed when the file is included from an
+ 372:../../../os/common/ports/AVR/chcore.h ****    asm module.*/
+ 373:../../../os/common/ports/AVR/chcore.h **** #if !defined(_FROM_ASM_)
+ 374:../../../os/common/ports/AVR/chcore.h **** 
+ 375:../../../os/common/ports/AVR/chcore.h **** #ifdef __cplusplus
+ 376:../../../os/common/ports/AVR/chcore.h **** extern "C" {
+ 377:../../../os/common/ports/AVR/chcore.h **** #endif
+ 378:../../../os/common/ports/AVR/chcore.h ****   void _port_switch(thread_t *ntp, thread_t *otp);
+ 379:../../../os/common/ports/AVR/chcore.h ****   void _port_thread_start(void);
+ 380:../../../os/common/ports/AVR/chcore.h **** #ifdef __cplusplus
+ 381:../../../os/common/ports/AVR/chcore.h **** }
+ 382:../../../os/common/ports/AVR/chcore.h **** #endif
+ 383:../../../os/common/ports/AVR/chcore.h **** 
+ 384:../../../os/common/ports/AVR/chcore.h **** #endif /* !defined(_FROM_ASM_) */
+ 385:../../../os/common/ports/AVR/chcore.h **** 
+ 386:../../../os/common/ports/AVR/chcore.h **** /*===========================================================================*/
+ 387:../../../os/common/ports/AVR/chcore.h **** /* Module inline functions.                                                  */
+ 388:../../../os/common/ports/AVR/chcore.h **** /*===========================================================================*/
+ 389:../../../os/common/ports/AVR/chcore.h **** 
+ 390:../../../os/common/ports/AVR/chcore.h **** /* The following code is not processed when the file is included from an
+ 391:../../../os/common/ports/AVR/chcore.h ****    asm module.*/
+ 392:../../../os/common/ports/AVR/chcore.h **** #if !defined(_FROM_ASM_)
+ 393:../../../os/common/ports/AVR/chcore.h **** 
+ 394:../../../os/common/ports/AVR/chcore.h **** /**
+ 395:../../../os/common/ports/AVR/chcore.h ****  * @brief   Returns a word encoding the current interrupts status.
+ 396:../../../os/common/ports/AVR/chcore.h ****  *
+ 397:../../../os/common/ports/AVR/chcore.h ****  * @return              The interrupts status.
+ 398:../../../os/common/ports/AVR/chcore.h ****  */
+ 399:../../../os/common/ports/AVR/chcore.h **** static inline syssts_t port_get_irq_status(void) {
+ 400:../../../os/common/ports/AVR/chcore.h **** 
+ 401:../../../os/common/ports/AVR/chcore.h ****   return SREG;
+ 402:../../../os/common/ports/AVR/chcore.h **** }
+ 403:../../../os/common/ports/AVR/chcore.h **** 
+ 404:../../../os/common/ports/AVR/chcore.h **** /**
+ 405:../../../os/common/ports/AVR/chcore.h ****  * @brief   Checks the interrupt status.
+ 406:../../../os/common/ports/AVR/chcore.h ****  *
+ 407:../../../os/common/ports/AVR/chcore.h ****  * @param[in] sts       the interrupt status word
+ 408:../../../os/common/ports/AVR/chcore.h ****  *
+ 409:../../../os/common/ports/AVR/chcore.h ****  * @return              The interrupt status.
+ 410:../../../os/common/ports/AVR/chcore.h ****  * @retval false        the word specified a disabled interrupts status.
+ 411:../../../os/common/ports/AVR/chcore.h ****  * @retval true         the word specified an enabled interrupts status.
+ 412:../../../os/common/ports/AVR/chcore.h ****  */
+ 413:../../../os/common/ports/AVR/chcore.h **** static inline bool port_irq_enabled(syssts_t sts) {
+ 414:../../../os/common/ports/AVR/chcore.h **** 
+ 415:../../../os/common/ports/AVR/chcore.h ****   return (bool)((sts & 0x80) != 0);
+ 416:../../../os/common/ports/AVR/chcore.h **** }
+ 417:../../../os/common/ports/AVR/chcore.h **** 
+ 418:../../../os/common/ports/AVR/chcore.h **** /**
+ 419:../../../os/common/ports/AVR/chcore.h ****  * @brief   Determines the current execution context.
+ 420:../../../os/common/ports/AVR/chcore.h ****  *
+ 421:../../../os/common/ports/AVR/chcore.h ****  * @return              The execution context.
+ 422:../../../os/common/ports/AVR/chcore.h ****  * @retval false        not running in ISR mode.
+ 423:../../../os/common/ports/AVR/chcore.h ****  * @retval true         running in ISR mode.
+ 424:../../../os/common/ports/AVR/chcore.h ****  */
+ 425:../../../os/common/ports/AVR/chcore.h **** static inline bool port_is_isr_context(void) {
+ 426:../../../os/common/ports/AVR/chcore.h **** 
+ 427:../../../os/common/ports/AVR/chcore.h ****   return __avr_in_isr;
+ 428:../../../os/common/ports/AVR/chcore.h **** }
+ 429:../../../os/common/ports/AVR/chcore.h **** 
+ 430:../../../os/common/ports/AVR/chcore.h **** /**
+ 431:../../../os/common/ports/AVR/chcore.h ****  * @brief   Kernel-lock action.
+ 432:../../../os/common/ports/AVR/chcore.h ****  * @details Usually this function just disables interrupts but may perform more
+ 433:../../../os/common/ports/AVR/chcore.h ****  *          actions.
+ 434:../../../os/common/ports/AVR/chcore.h ****  */
+ 435:../../../os/common/ports/AVR/chcore.h **** static inline void port_lock(void) {
+ 436:../../../os/common/ports/AVR/chcore.h **** 
+ 437:../../../os/common/ports/AVR/chcore.h ****   asm volatile ("cli" : : : "memory");
+ 189               		.loc 2 437 0
+ 190               	/* #APP */
+ 191               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
+ 192 0000 F894      		cli
+ 193               	 ;  0 "" 2
+ 194               	/* #NOAPP */
+ 195               	.LBE138:
+ 196               	.LBE137:
+ 197               	.LBE136:
+ 198               	.LBB139:
+ 199               	.LBB140:
+ 200               		.file 3 "../../../os/rt/include/chvt.h"
+   1:../../../os/rt/include/chvt.h **** /*
+   2:../../../os/rt/include/chvt.h ****     ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio.
+   3:../../../os/rt/include/chvt.h **** 
+   4:../../../os/rt/include/chvt.h ****     This file is part of ChibiOS.
+   5:../../../os/rt/include/chvt.h **** 
+   6:../../../os/rt/include/chvt.h ****     ChibiOS is free software; you can redistribute it and/or modify
+   7:../../../os/rt/include/chvt.h ****     it under the terms of the GNU General Public License as published by
+   8:../../../os/rt/include/chvt.h ****     the Free Software Foundation; either version 3 of the License, or
+   9:../../../os/rt/include/chvt.h ****     (at your option) any later version.
+  10:../../../os/rt/include/chvt.h **** 
+  11:../../../os/rt/include/chvt.h ****     ChibiOS is distributed in the hope that it will be useful,
+  12:../../../os/rt/include/chvt.h ****     but WITHOUT ANY WARRANTY; without even the implied warranty of
+  13:../../../os/rt/include/chvt.h ****     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  14:../../../os/rt/include/chvt.h ****     GNU General Public License for more details.
+  15:../../../os/rt/include/chvt.h **** 
+  16:../../../os/rt/include/chvt.h ****     You should have received a copy of the GNU General Public License
+  17:../../../os/rt/include/chvt.h ****     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  18:../../../os/rt/include/chvt.h **** */
+  19:../../../os/rt/include/chvt.h **** 
+  20:../../../os/rt/include/chvt.h **** /**
+  21:../../../os/rt/include/chvt.h ****  * @file    chvt.h
+  22:../../../os/rt/include/chvt.h ****  * @brief   Time and Virtual Timers module macros and structures.
+  23:../../../os/rt/include/chvt.h ****  *
+  24:../../../os/rt/include/chvt.h ****  * @addtogroup time
+  25:../../../os/rt/include/chvt.h ****  * @{
+  26:../../../os/rt/include/chvt.h ****  */
+  27:../../../os/rt/include/chvt.h **** 
+  28:../../../os/rt/include/chvt.h **** #ifndef CHVT_H
+  29:../../../os/rt/include/chvt.h **** #define CHVT_H
+  30:../../../os/rt/include/chvt.h **** 
+  31:../../../os/rt/include/chvt.h **** /*===========================================================================*/
+  32:../../../os/rt/include/chvt.h **** /* Module constants.                                                         */
+  33:../../../os/rt/include/chvt.h **** /*===========================================================================*/
+  34:../../../os/rt/include/chvt.h **** 
+  35:../../../os/rt/include/chvt.h **** /*===========================================================================*/
+  36:../../../os/rt/include/chvt.h **** /* Module pre-compile time settings.                                         */
+  37:../../../os/rt/include/chvt.h **** /*===========================================================================*/
+  38:../../../os/rt/include/chvt.h **** 
+  39:../../../os/rt/include/chvt.h **** /*===========================================================================*/
+  40:../../../os/rt/include/chvt.h **** /* Derived constants and error checks.                                       */
+  41:../../../os/rt/include/chvt.h **** /*===========================================================================*/
+  42:../../../os/rt/include/chvt.h **** 
+  43:../../../os/rt/include/chvt.h **** #if (CH_CFG_ST_TIMEDELTA < 0) || (CH_CFG_ST_TIMEDELTA == 1)
+  44:../../../os/rt/include/chvt.h **** #error "invalid CH_CFG_ST_TIMEDELTA specified, must "                       \
+  45:../../../os/rt/include/chvt.h ****        "be zero or greater than one"
+  46:../../../os/rt/include/chvt.h **** #endif
+  47:../../../os/rt/include/chvt.h **** 
+  48:../../../os/rt/include/chvt.h **** //#if (CH_CFG_ST_TIMEDELTA > 0) && (CH_CFG_TIME_QUANTUM > 0)
+  49:../../../os/rt/include/chvt.h **** //#error "CH_CFG_TIME_QUANTUM not supported in tickless mode"
+  50:../../../os/rt/include/chvt.h **** //#endif
+  51:../../../os/rt/include/chvt.h **** 
+  52:../../../os/rt/include/chvt.h **** #if (CH_CFG_ST_TIMEDELTA > 0) && (CH_DBG_THREADS_PROFILING == TRUE)
+  53:../../../os/rt/include/chvt.h **** #error "CH_DBG_THREADS_PROFILING not supported in tickless mode"
+  54:../../../os/rt/include/chvt.h **** #endif
+  55:../../../os/rt/include/chvt.h **** 
+  56:../../../os/rt/include/chvt.h **** /*===========================================================================*/
+  57:../../../os/rt/include/chvt.h **** /* Module data structures and types.                                         */
+  58:../../../os/rt/include/chvt.h **** /*===========================================================================*/
+  59:../../../os/rt/include/chvt.h **** 
+  60:../../../os/rt/include/chvt.h **** /*===========================================================================*/
+  61:../../../os/rt/include/chvt.h **** /* Module macros.                                                            */
+  62:../../../os/rt/include/chvt.h **** /*===========================================================================*/
+  63:../../../os/rt/include/chvt.h **** 
+  64:../../../os/rt/include/chvt.h **** /*===========================================================================*/
+  65:../../../os/rt/include/chvt.h **** /* External declarations.                                                    */
+  66:../../../os/rt/include/chvt.h **** /*===========================================================================*/
+  67:../../../os/rt/include/chvt.h **** 
+  68:../../../os/rt/include/chvt.h **** /*
+  69:../../../os/rt/include/chvt.h ****  * Virtual Timers APIs.
+  70:../../../os/rt/include/chvt.h ****  */
+  71:../../../os/rt/include/chvt.h **** #ifdef __cplusplus
+  72:../../../os/rt/include/chvt.h **** extern "C" {
+  73:../../../os/rt/include/chvt.h **** #endif
+  74:../../../os/rt/include/chvt.h ****   void _vt_init(void);
+  75:../../../os/rt/include/chvt.h ****   void chVTDoSetI(virtual_timer_t *vtp, sysinterval_t delay,
+  76:../../../os/rt/include/chvt.h ****                   vtfunc_t vtfunc, void *par);
+  77:../../../os/rt/include/chvt.h ****   void chVTDoResetI(virtual_timer_t *vtp);
+  78:../../../os/rt/include/chvt.h **** #ifdef __cplusplus
+  79:../../../os/rt/include/chvt.h **** }
+  80:../../../os/rt/include/chvt.h **** #endif
+  81:../../../os/rt/include/chvt.h **** 
+  82:../../../os/rt/include/chvt.h **** /*===========================================================================*/
+  83:../../../os/rt/include/chvt.h **** /* Module inline functions.                                                  */
+  84:../../../os/rt/include/chvt.h **** /*===========================================================================*/
+  85:../../../os/rt/include/chvt.h **** 
+  86:../../../os/rt/include/chvt.h **** /**
+  87:../../../os/rt/include/chvt.h ****  * @brief   Initializes a @p virtual_timer_t object.
+  88:../../../os/rt/include/chvt.h ****  * @note    Initializing a timer object is not strictly required because
+  89:../../../os/rt/include/chvt.h ****  *          the function @p chVTSetI() initializes the object too. This
+  90:../../../os/rt/include/chvt.h ****  *          function is only useful if you need to perform a @p chVTIsArmed()
+  91:../../../os/rt/include/chvt.h ****  *          check before calling @p chVTSetI().
+  92:../../../os/rt/include/chvt.h ****  *
+  93:../../../os/rt/include/chvt.h ****  * @param[out] vtp      the @p virtual_timer_t structure pointer
+  94:../../../os/rt/include/chvt.h ****  *
+  95:../../../os/rt/include/chvt.h ****  * @init
+  96:../../../os/rt/include/chvt.h ****  */
+  97:../../../os/rt/include/chvt.h **** static inline void chVTObjectInit(virtual_timer_t *vtp) {
+  98:../../../os/rt/include/chvt.h **** 
+  99:../../../os/rt/include/chvt.h ****   vtp->func = NULL;
+ 100:../../../os/rt/include/chvt.h **** }
+ 101:../../../os/rt/include/chvt.h **** 
+ 102:../../../os/rt/include/chvt.h **** /**
+ 103:../../../os/rt/include/chvt.h ****  * @brief   Current system time.
+ 104:../../../os/rt/include/chvt.h ****  * @details Returns the number of system ticks since the @p chSysInit()
+ 105:../../../os/rt/include/chvt.h ****  *          invocation.
+ 106:../../../os/rt/include/chvt.h ****  * @note    The counter can reach its maximum and then restart from zero.
+ 107:../../../os/rt/include/chvt.h ****  * @note    This function can be called from any context but its atomicity
+ 108:../../../os/rt/include/chvt.h ****  *          is not guaranteed on architectures whose word size is less than
+ 109:../../../os/rt/include/chvt.h ****  *          @p systime_t size.
+ 110:../../../os/rt/include/chvt.h ****  *
+ 111:../../../os/rt/include/chvt.h ****  * @return              The system time in ticks.
+ 112:../../../os/rt/include/chvt.h ****  *
+ 113:../../../os/rt/include/chvt.h ****  * @xclass
+ 114:../../../os/rt/include/chvt.h ****  */
+ 115:../../../os/rt/include/chvt.h **** static inline systime_t chVTGetSystemTimeX(void) {
+ 116:../../../os/rt/include/chvt.h **** 
+ 117:../../../os/rt/include/chvt.h **** #if CH_CFG_ST_TIMEDELTA == 0
+ 118:../../../os/rt/include/chvt.h ****   return ch.vtlist.systime;
+ 201               		.loc 3 118 0
+ 202 0002 6091 0000 		lds r22,ch+19
+ 203 0006 7091 0000 		lds r23,ch+19+1
+ 204               	.LBE140:
+ 205               	.LBE139:
+ 206               	.LBB141:
+ 207               	.LBB142:
+ 208               	.LBB143:
+ 209               	.LBB144:
+ 438:../../../os/common/ports/AVR/chcore.h **** }
+ 439:../../../os/common/ports/AVR/chcore.h **** 
+ 440:../../../os/common/ports/AVR/chcore.h **** /**
+ 441:../../../os/common/ports/AVR/chcore.h ****  * @brief   Kernel-unlock action.
+ 442:../../../os/common/ports/AVR/chcore.h ****  * @details Usually this function just enables interrupts but may perform more
+ 443:../../../os/common/ports/AVR/chcore.h ****  *          actions.
+ 444:../../../os/common/ports/AVR/chcore.h ****  */
+ 445:../../../os/common/ports/AVR/chcore.h **** static inline void port_unlock(void) {
+ 446:../../../os/common/ports/AVR/chcore.h **** 
+ 447:../../../os/common/ports/AVR/chcore.h ****   asm volatile ("sei" : : : "memory");
+ 210               		.loc 2 447 0
+ 211               	/* #APP */
+ 212               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
+ 213 000a 7894      		sei
+ 214               	 ;  0 "" 2
+ 215               	.LVL16:
+ 216               	/* #NOAPP */
+ 217               	.LBE144:
+ 218               	.LBE143:
+ 219               	.LBE142:
+ 220               	.LBE141:
+ 221               	.LBE135:
+ 222               	.LBE134:
+ 200:W_M.c         ****   systime_t agora = chVTGetSystemTime();
+ 201:W_M.c         ****   rodar_e rd = GIRA_R;
+ 202:W_M.c         ****   systime_t ls_report,init_time;
+ 203:W_M.c         **** 
+ 204:W_M.c         ****   ls_report = agora;
+ 205:W_M.c         ****   init_time = agora;
+ 206:W_M.c         ****   while(1){
+ 207:W_M.c         ****     agora = chVTGetSystemTime();
+ 208:W_M.c         ****     switch(rd){
+ 209:W_M.c         ****       case(GIRA_R):
+ 210:W_M.c         ****         if(lavar == EMERGENCIA){
+ 211:W_M.c         ****           return;
+ 212:W_M.c         ****         } // verifcar emergência
+ 213:W_M.c         ****         palSetPad(IOPORT3, MOTOR_DIR);
+ 214:W_M.c         ****         if(agora - ls_report >= TIME_S2I(GIRO_TEMPO)){
+ 215:W_M.c         ****           // printf("Girando pra Esqueda\n");
+ 216:W_M.c         ****           palClearPad(IOPORT3, MOTOR_DIR);
+ 217:W_M.c         ****           ls_report = agora;
+ 218:W_M.c         ****           rd = GIRA_L;
+ 219:W_M.c         ****           }
+ 220:W_M.c         ****         if(agora - init_time > TIME_S2I(timer)){
+ 221:W_M.c         ****           // printf("Fim do Giro\n");
+ 222:W_M.c         ****           return;
+ 223:W_M.c         ****         }
+ 224:W_M.c         ****         break;
+ 225:W_M.c         ****       case(GIRA_L):
+ 226:W_M.c         ****         if(lavar == EMERGENCIA){
+ 227:W_M.c         ****           return;
+ 228:W_M.c         ****         } // verifcar emergência
+ 229:W_M.c         ****         palSetPad(IOPORT3, MOTOR_ESQ);
+ 230:W_M.c         ****         if(agora - ls_report >= TIME_S2I(GIRO_TEMPO)){
+ 231:W_M.c         ****           // printf("Girando pra Direita\n");
+ 232:W_M.c         ****           palClearPad(IOPORT3, MOTOR_ESQ);
+ 233:W_M.c         ****           ls_report = agora;
+ 234:W_M.c         ****           rd = GIRA_R;
+ 235:W_M.c         ****           }
+ 236:W_M.c         ****         if(agora - init_time > TIME_S2I(timer)){
+ 223               		.loc 1 236 0
+ 224 000c 28E0      		ldi r18,lo8(8)
+ 225 000e 3DE3      		ldi r19,lo8(61)
+ 226 0010 829F      		mul r24,r18
+ 227 0012 F001      		movw r30,r0
+ 228 0014 839F      		mul r24,r19
+ 229 0016 F00D      		add r31,r0
+ 230 0018 929F      		mul r25,r18
+ 231 001a F00D      		add r31,r0
+ 232 001c 1124      		clr r1
+ 204:W_M.c         ****   init_time = agora;
+ 233               		.loc 1 204 0
+ 234 001e AB01      		movw r20,r22
+ 201:W_M.c         ****   systime_t ls_report,init_time;
+ 235               		.loc 1 201 0
+ 236 0020 20E0      		ldi r18,0
+ 237               	.LVL17:
+ 238               	.L3:
+ 239               	.LBB145:
+ 240               	.LBB146:
+ 241               	.LBB147:
+ 242               	.LBB148:
+ 243               	.LBB149:
+ 437:../../../os/common/ports/AVR/chcore.h **** }
+ 244               		.loc 2 437 0
+ 245               	/* #APP */
+ 246               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
+ 247 0022 F894      		cli
+ 248               	 ;  0 "" 2
+ 249               	/* #NOAPP */
+ 250               	.LBE149:
+ 251               	.LBE148:
+ 252               	.LBE147:
+ 253               	.LBB150:
+ 254               	.LBB151:
+ 255               		.loc 3 118 0
+ 256 0024 8091 0000 		lds r24,ch+19
+ 257 0028 9091 0000 		lds r25,ch+19+1
+ 258               	.LVL18:
+ 259               	.LBE151:
+ 260               	.LBE150:
+ 261               	.LBB154:
+ 262               	.LBB155:
+ 263               	.LBB156:
+ 264               	.LBB157:
+ 265               		.loc 2 447 0
+ 266               	/* #APP */
+ 267               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
+ 268 002c 7894      		sei
+ 269               	 ;  0 "" 2
+ 270               	/* #NOAPP */
+ 271               	.LBE157:
+ 272               	.LBE156:
+ 273               	.LBE155:
+ 274               	.LBE154:
+ 275               	.LBE146:
+ 276               	.LBE145:
+ 208:W_M.c         ****       case(GIRA_R):
+ 277               		.loc 1 208 0
+ 278 002e 2130      		cpi r18,lo8(1)
+ 279 0030 01F0      		breq .L5
+ 210:W_M.c         ****           return;
+ 280               		.loc 1 210 0
+ 281 0032 2091 0000 		lds r18,lavar
+ 282               	.LVL19:
+ 283 0036 2530      		cpi r18,lo8(5)
+ 284 0038 01F0      		breq .L2
+ 213:W_M.c         ****         if(agora - ls_report >= TIME_S2I(GIRO_TEMPO)){
+ 285               		.loc 1 213 0
+ 286 003a 409A      		sbi 0x8,0
+ 214:W_M.c         ****           // printf("Girando pra Esqueda\n");
+ 287               		.loc 1 214 0
+ 288 003c 9C01      		movw r18,r24
+ 289 003e 241B      		sub r18,r20
+ 290 0040 350B      		sbc r19,r21
+ 291 0042 2830      		cpi r18,8
+ 292 0044 3D43      		sbci r19,61
+ 293 0046 00F0      		brlo .L11
+ 216:W_M.c         ****           ls_report = agora;
+ 294               		.loc 1 216 0
+ 295 0048 4098      		cbi 0x8,0
+ 296               	.LVL20:
+ 297               	.LBB162:
+ 298               	.LBB160:
+ 299               	.LBB158:
+ 300               	.LBB152:
+ 301               		.loc 3 118 0
+ 302 004a AC01      		movw r20,r24
+ 303               	.LBE152:
+ 304               	.LBE158:
+ 305               	.LBE160:
+ 306               	.LBE162:
+ 218:W_M.c         ****           }
+ 307               		.loc 1 218 0
+ 308 004c 21E0      		ldi r18,lo8(1)
+ 309               	.LVL21:
+ 310               	.L7:
+ 220:W_M.c         ****           // printf("Fim do Giro\n");
+ 311               		.loc 1 220 0
+ 312 004e 861B      		sub r24,r22
+ 313 0050 970B      		sbc r25,r23
+ 314 0052 E817      		cp r30,r24
+ 315 0054 F907      		cpc r31,r25
+ 316 0056 00F4      		brsh .L3
+ 317 0058 0895      		ret
+ 318               	.LVL22:
+ 319               	.L5:
+ 226:W_M.c         ****           return;
+ 320               		.loc 1 226 0
+ 321 005a 3091 0000 		lds r19,lavar
+ 322 005e 3530      		cpi r19,lo8(5)
+ 323 0060 01F0      		breq .L2
+ 229:W_M.c         ****         if(agora - ls_report >= TIME_S2I(GIRO_TEMPO)){
+ 324               		.loc 1 229 0
+ 325 0062 419A      		sbi 0x8,1
+ 230:W_M.c         ****           // printf("Girando pra Direita\n");
+ 326               		.loc 1 230 0
+ 327 0064 DC01      		movw r26,r24
+ 328 0066 A41B      		sub r26,r20
+ 329 0068 B50B      		sbc r27,r21
+ 330 006a A830      		cpi r26,8
+ 331 006c BD43      		sbci r27,61
+ 332 006e 00F0      		brlo .L10
+ 232:W_M.c         ****           ls_report = agora;
+ 333               		.loc 1 232 0
+ 334 0070 4198      		cbi 0x8,1
+ 335               	.LVL23:
+ 336               	.LBB163:
+ 337               	.LBB161:
+ 338               	.LBB159:
+ 339               	.LBB153:
+ 340               		.loc 3 118 0
+ 341 0072 AC01      		movw r20,r24
+ 342               	.LBE153:
+ 343               	.LBE159:
+ 344               	.LBE161:
+ 345               	.LBE163:
+ 234:W_M.c         ****           }
+ 346               		.loc 1 234 0
+ 347 0074 20E0      		ldi r18,0
+ 348               	.LVL24:
+ 349               	.L10:
+ 350               		.loc 1 236 0
+ 351 0076 861B      		sub r24,r22
+ 352 0078 970B      		sbc r25,r23
+ 353 007a E817      		cp r30,r24
+ 354 007c F907      		cpc r31,r25
+ 355 007e 00F4      		brsh .L3
+ 356               	.LVL25:
+ 357               	.L2:
+ 358 0080 0895      		ret
+ 359               	.L11:
+ 360 0082 20E0      		ldi r18,0
+ 361 0084 00C0      		rjmp .L7
+ 362               		.cfi_endproc
+ 363               	.LFE173:
+ 365               		.section	.rodata.str1.1
+ 366               	.LC1:
+ 367 0013 496E 6963 		.string	"Inicio MOLHO \n\r"
+ 367      696F 204D 
+ 367      4F4C 484F 
+ 367      200A 0D00 
+ 368               	.LC2:
+ 369 0023 456E 6368 		.string	"Enchendo... \n\r"
+ 369      656E 646F 
+ 369      2E2E 2E20 
+ 369      0A0D 00
+ 370               	.LC3:
+ 371 0032 5365 6E73 		.string	"Sensor cheio\n\r"
+ 371      6F72 2063 
+ 371      6865 696F 
+ 371      0A0D 00
+ 372               		.section	.text.lavar_maquina,"ax",@progbits
+ 373               	.global	lavar_maquina
+ 375               	lavar_maquina:
+ 376               	.LFB174:
+ 237:W_M.c         ****           // printf("saindo\n");
+ 238:W_M.c         ****           return;
+ 239:W_M.c         ****           }
+ 240:W_M.c         ****         break;
+ 241:W_M.c         ****         }
+ 242:W_M.c         ****      }
+ 243:W_M.c         ****   }
+ 244:W_M.c         **** 
+ 245:W_M.c         **** /* Main Machine */
+ 246:W_M.c         **** 
+ 247:W_M.c         **** void lavar_maquina(){
+ 377               		.loc 1 247 0
+ 378               		.cfi_startproc
+ 379 0000 CF93      		push r28
+ 380               	.LCFI5:
+ 381               		.cfi_def_cfa_offset 3
+ 382               		.cfi_offset 28, -2
+ 383 0002 DF93      		push r29
+ 384               	.LCFI6:
+ 385               		.cfi_def_cfa_offset 4
+ 386               		.cfi_offset 29, -3
+ 387               	/* prologue: function */
+ 388               	/* frame size = 0 */
+ 389               	/* stack size = 2 */
+ 390               	.L__stack_usage = 2
+ 248:W_M.c         ****   // int t_cheio;
+ 249:W_M.c         ****   // chprintf((BaseSequentialStream *)&SD1, "ENtrei na maquina");
+ 250:W_M.c         ****   switch(lavar){
+ 391               		.loc 1 250 0
+ 392 0004 8091 0000 		lds r24,lavar
+ 393 0008 8330      		cpi r24,lo8(3)
+ 394 000a 01F4      		brne .+2
+ 395 000c 00C0      		rjmp .L18
+ 396 000e 00F0      		brlo .+2
+ 397 0010 00C0      		rjmp .L19
+ 398 0012 8130      		cpi r24,lo8(1)
+ 399 0014 01F0      		breq .L20
+ 400 0016 8230      		cpi r24,lo8(2)
+ 401 0018 01F4      		brne .L16
+ 251:W_M.c         **** 
+ 252:W_M.c         ****     // case(PARADA):
+ 253:W_M.c         ****     //   if(lavar == EMERGENCIA){
+ 254:W_M.c         ****     //     break;
+ 255:W_M.c         ****     //   } // verifcar emergência
+ 256:W_M.c         ****     //   printf("Inicio da Parada\n");
+ 257:W_M.c         ****     //   printf("Escolha o estado inicial:\n");
+ 258:W_M.c         ****     //   scanf("%d", &fsm_prd.select_init);
+ 259:W_M.c         ****     //
+ 260:W_M.c         ****     //   if(fsm_prd.select_init == 1){
+ 261:W_M.c         ****     //     lavar = MOLHO;
+ 262:W_M.c         ****     //     printf("Inicio MOLHO\n");
+ 263:W_M.c         ****     //     fsm_molho_init(&fsm_ml);
+ 264:W_M.c         ****     //   }
+ 265:W_M.c         ****     //   if(fsm_prd.select_init == 2){
+ 266:W_M.c         ****     //     lavar = LAVAGEM;
+ 267:W_M.c         ****     //     printf("Inicio LAVAGEM\n");
+ 268:W_M.c         ****     //     fsm_lavagem_init(&fsm_lvg);
+ 269:W_M.c         ****     //   }
+ 270:W_M.c         ****     //   if(fsm_prd.select_init == 3){
+ 271:W_M.c         ****     //     lavar = ENXAGUE;
+ 272:W_M.c         ****     //     printf("Inicio ENXAGUE\n");
+ 273:W_M.c         ****     //     fsm_enxague_init(&fsm_exg);
+ 274:W_M.c         ****     //   }
+ 275:W_M.c         ****     //   if(fsm_prd.select_init == 4){
+ 276:W_M.c         ****     //     lavar = CENTRIFUGA;
+ 277:W_M.c         ****     //     fsm_centrifuga_init(&fsm_cen);
+ 278:W_M.c         ****     //     printf("Inicio CENTRIFUGA\n");
+ 279:W_M.c         ****     //   }
+ 280:W_M.c         ****     //
+ 281:W_M.c         ****     // break;
+ 282:W_M.c         **** 
+ 283:W_M.c         **** 
+ 284:W_M.c         ****     case(MOLHO):
+ 285:W_M.c         ****     // printf("Inicio Molho\n");
+ 286:W_M.c         ****     chprintf((BaseSequentialStream *)&SD1, "Inicio MOLHO \n\r");
+ 287:W_M.c         **** 
+ 288:W_M.c         ****       switch(fsm_ml.ml){
+ 289:W_M.c         ****         case(ENCHER_ML):
+ 290:W_M.c         ****           if(lavar == EMERGENCIA){
+ 291:W_M.c         ****             break;
+ 292:W_M.c         ****           } // verifcar emergência
+ 293:W_M.c         ****           // printf("DEBUG: Super MOLHO - estado ENCHER_ML\n");
+ 294:W_M.c         ****           // printf("Abrir água\n");
+ 295:W_M.c         ****           palSetPad(IOPORT2, ENCHE_ID);
+ 296:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Enchendo... \n\r");
+ 297:W_M.c         ****           if(palReadPad(IOPORT4, SEN_CHEIO) == PAL_HIGH){
+ 298:W_M.c         ****             // printf("Sensor Cheio\n");
+ 299:W_M.c         ****             chprintf((BaseSequentialStream *)&SD1, "Sensor cheio\n\r");
+ 300:W_M.c         ****             palClearPad(IOPORT2, ENCHE_ID);
+ 301:W_M.c         ****             fsm_ml.ml = RODAR_ML;
+ 302:W_M.c         ****             // printf("Início Giros Molho\n");
+ 303:W_M.c         ****           }
+ 304:W_M.c         ****           break;
+ 305:W_M.c         **** 
+ 306:W_M.c         ****         case(RODAR_ML):
+ 307:W_M.c         ****           if(lavar == EMERGENCIA){
+ 308:W_M.c         ****             break;
+ 309:W_M.c         ****           } // verifcar emergência
+ 310:W_M.c         ****           // printf("DEBUG: Super MOLHO - estado RODAR_ML\n");
+ 311:W_M.c         ****           spinning(fsm_ml.t_giro);
+ 312:W_M.c         ****           lavar = LAVAGEM;
+ 313:W_M.c         ****           fsm_lavagem_init(&fsm_lvg);
+ 314:W_M.c         ****           // printf("Fim Molho\n");
+ 315:W_M.c         ****           // printf("Inicio LAVAGEM\n");
+ 316:W_M.c         ****           break;
+ 317:W_M.c         ****       }
+ 318:W_M.c         ****       break;
+ 319:W_M.c         **** 
+ 320:W_M.c         **** 
+ 321:W_M.c         ****     case(LAVAGEM):
+ 322:W_M.c         ****       // printf("Inicio Lavagem\n");
+ 323:W_M.c         **** 
+ 324:W_M.c         ****       switch(fsm_lvg.lvg){
+ 402               		.loc 1 324 0
+ 403 001a 8091 0000 		lds r24,fsm_lvg
+ 404 001e 8930      		cpi r24,lo8(9)
+ 405 0020 01F4      		brne .+2
+ 406 0022 00C0      		rjmp .L28
+ 407 0024 8A30      		cpi r24,lo8(10)
+ 408 0026 01F4      		brne .+2
+ 409 0028 00C0      		rjmp .L29
+ 410 002a 8830      		cpi r24,lo8(8)
+ 411 002c 01F4      		brne .+2
+ 412 002e 00C0      		rjmp .L53
+ 413               	.L16:
+ 414               	/* epilogue start */
+ 325:W_M.c         ****         case(RODAR_LVG):
+ 326:W_M.c         ****           if(lavar == EMERGENCIA){
+ 327:W_M.c         ****             break;
+ 328:W_M.c         ****           } // verifcar emergência
+ 329:W_M.c         ****           // printf("DEBUG Super LAVAGEM - estado RODAR_LVG\n");
+ 330:W_M.c         ****           // printf("Inicio giros Lavagem\n");
+ 331:W_M.c         ****           spinning(fsm_lvg.t_giros);
+ 332:W_M.c         ****           fsm_lvg.ul_espera = chVTGetSystemTime();
+ 333:W_M.c         ****           fsm_lvg.lvg = ESPERA_LVG;
+ 334:W_M.c         ****           // printf("DEBUG: Super LAVAGEM - estado ESPERA\n");
+ 335:W_M.c         **** 
+ 336:W_M.c         ****           break;
+ 337:W_M.c         **** 
+ 338:W_M.c         ****         case(ESPERA_LVG):
+ 339:W_M.c         ****           if(lavar == EMERGENCIA){
+ 340:W_M.c         ****             break;
+ 341:W_M.c         ****           } // verifcar emergência
+ 342:W_M.c         ****           fsm_lvg.instante = chVTGetSystemTime();
+ 343:W_M.c         ****           if(fsm_lvg.instante - fsm_lvg.ul_espera > TIME_S2I(fsm_lvg.t_espera)){
+ 344:W_M.c         ****             fsm_lvg.ul_espera = chVTGetSystemTime();
+ 345:W_M.c         ****             if(fsm_lvg.turns >= 3){
+ 346:W_M.c         ****               fsm_lvg.turns = 0;
+ 347:W_M.c         ****               fsm_lvg.lvg = ESVAZIA_LVG;
+ 348:W_M.c         ****               // printf("Fim giros Lavagem\n");
+ 349:W_M.c         **** 
+ 350:W_M.c         ****             } else {
+ 351:W_M.c         ****               fsm_lvg.turns ++;
+ 352:W_M.c         ****               fsm_lvg.lvg = RODAR_LVG;
+ 353:W_M.c         ****             } // fim if voltas
+ 354:W_M.c         ****           } // fim if tempo
+ 355:W_M.c         ****           break;
+ 356:W_M.c         **** 
+ 357:W_M.c         ****         case(ESVAZIA_LVG):
+ 358:W_M.c         ****           if(lavar == EMERGENCIA){
+ 359:W_M.c         ****             break;
+ 360:W_M.c         ****           } // verificar emergência
+ 361:W_M.c         ****           palSetPad(IOPORT2, SECA_ID);
+ 362:W_M.c         ****           // printf("DEBUG: Super LAVAGEM - estado ESVAZIA_LVG\n");
+ 363:W_M.c         ****           if(palReadPad(IOPORT4, SEN_VAZIO) == PAL_HIGH){
+ 364:W_M.c         ****             // printf("Sensor Vazio: ON\n");
+ 365:W_M.c         ****             palClearPad(IOPORT2, SECA_ID);
+ 366:W_M.c         ****             // printf("Fim LAVAGEM\n");
+ 367:W_M.c         ****             // printf("Inicio ENXAGUE\n");
+ 368:W_M.c         ****               lavar = ENXAGUE;
+ 369:W_M.c         ****               fsm_enxague_init(&fsm_exg);
+ 370:W_M.c         ****             } // fim "if" sensor vazio
+ 371:W_M.c         ****             break;
+ 372:W_M.c         ****           } // fim switch LAVAGEM
+ 373:W_M.c         ****           break;
+ 374:W_M.c         **** 
+ 375:W_M.c         **** 
+ 376:W_M.c         ****     case(ENXAGUE):
+ 377:W_M.c         ****       // printf("Inicio Enxague\n ");
+ 378:W_M.c         **** 
+ 379:W_M.c         ****       switch(fsm_exg.exg){
+ 380:W_M.c         ****         case(ENCHER_EXG):
+ 381:W_M.c         ****           if(lavar == EMERGENCIA){
+ 382:W_M.c         ****             break;
+ 383:W_M.c         ****           } // verificar emergência
+ 384:W_M.c         ****           // printf("DEBUG: Super ENXAGUE - estado ENCHER_EXG\n");
+ 385:W_M.c         ****           palSetPad(IOPORT2, ENCHE_ID);
+ 386:W_M.c         ****           if(palReadPad(IOPORT4, SEN_CHEIO) == PAL_HIGH){
+ 387:W_M.c         ****             // printf("Sensor Cheio: ON\n");
+ 388:W_M.c         ****             palClearPad(IOPORT2, ENCHE_ID);
+ 389:W_M.c         ****             fsm_exg.exg = RODAR_EXG;
+ 390:W_M.c         **** 
+ 391:W_M.c         ****           } // fim "if" Sensor cheio
+ 392:W_M.c         ****           break;
+ 393:W_M.c         **** 
+ 394:W_M.c         ****         case(RODAR_EXG):
+ 395:W_M.c         ****           if(lavar == EMERGENCIA){
+ 396:W_M.c         ****             break;
+ 397:W_M.c         ****           } // verificar emergência
+ 398:W_M.c         ****           // printf("DEBUG: Super ENXAGUE - estado RODAR_EXG\n");
+ 399:W_M.c         ****           spinning(fsm_exg.t_giro);
+ 400:W_M.c         ****           fsm_exg.exg = ESVAZIA_EXG;
+ 401:W_M.c         **** 
+ 402:W_M.c         ****         break;
+ 403:W_M.c         **** 
+ 404:W_M.c         ****         case(ESVAZIA_EXG):
+ 405:W_M.c         ****           if(lavar == EMERGENCIA){
+ 406:W_M.c         ****             break;
+ 407:W_M.c         ****           } //  verificar a emergência
+ 408:W_M.c         **** 
+ 409:W_M.c         ****           // printf("DEBUG: Super ENXAGUE - estados ESVAZIA_EXG\n");
+ 410:W_M.c         ****           palSetPad(IOPORT2, SECA_ID);
+ 411:W_M.c         ****           if(palReadPad(IOPORT4, SEN_VAZIO) == PAL_HIGH){
+ 412:W_M.c         ****              // printf("Sensor Vazio: ON\n");
+ 413:W_M.c         ****              palClearPad(IOPORT2, SECA_ID);
+ 414:W_M.c         ****              lavar = CENTRIFUGA;
+ 415:W_M.c         ****              fsm_centrifuga_init(&fsm_cen);
+ 416:W_M.c         ****              // printf("Fim Enxágue\n");
+ 417:W_M.c         ****              // printf("Inicio CENTRIFUGA\n");
+ 418:W_M.c         ****           }// fim "if" sensor vazio
+ 419:W_M.c         ****         break;
+ 420:W_M.c         ****       } // fim switch ENXAGUE
+ 421:W_M.c         ****       break;
+ 422:W_M.c         **** 
+ 423:W_M.c         **** 
+ 424:W_M.c         ****       case(CENTRIFUGA):
+ 425:W_M.c         ****       // printf("Inicio Centrifuga\n");
+ 426:W_M.c         **** 
+ 427:W_M.c         ****         switch(fsm_cen.cen){
+ 428:W_M.c         ****           case(GIRA_R_CENTRI):
+ 429:W_M.c         ****             if(lavar == EMERGENCIA){
+ 430:W_M.c         ****               break;
+ 431:W_M.c         ****             }
+ 432:W_M.c         ****             palSetPad(IOPORT3, MOTOR_DIR);
+ 433:W_M.c         ****             // printf("DEBUG: Super CENTRIFUGA - estado GIRA_R_CENTRI\n");
+ 434:W_M.c         ****             fsm_cen.tempo = chVTGetSystemTime();
+ 435:W_M.c         ****             // printf("Super:%d - estado:%d\n ",lavar, fsm_cen.cen);
+ 436:W_M.c         ****             // printf("CENTRIFUGA: %ld - %ld\n", fsm_cen.instante, fsm_cen.ul_espera);
+ 437:W_M.c         ****             if(fsm_cen.tempo - fsm_cen.ul_centri > TIME_S2I(fsm_cen.t_centri)){
+ 438:W_M.c         ****               palClearPad(IOPORT3, MOTOR_DIR);
+ 439:W_M.c         ****               lavar = PARADA;
+ 440:W_M.c         ****               // printf("FIM DA Máquina\n");
+ 441:W_M.c         ****             }
+ 442:W_M.c         ****           break; // break de GIRA_R_CENTRI
+ 443:W_M.c         ****         } // fim switch CENTRIFUGA
+ 444:W_M.c         ****     break; // break de centrífuga.
+ 445:W_M.c         **** 
+ 446:W_M.c         **** 
+ 447:W_M.c         ****     case(EMERGENCIA):
+ 448:W_M.c         ****       // printf("PORTA ABERTA. ERRO !!\n");
+ 449:W_M.c         ****       while(1);
+ 450:W_M.c         **** 
+ 451:W_M.c         ****     break; // break de emergência
+ 452:W_M.c         ****   } // fim switch máquina principal
+ 453:W_M.c         **** } // fim função da máquina principal.
+ 415               		.loc 1 453 0
+ 416 0030 DF91      		pop r29
+ 417 0032 CF91      		pop r28
+ 418 0034 0895      		ret
+ 419               	.L20:
+ 286:W_M.c         **** 
+ 420               		.loc 1 286 0
+ 421 0036 80E0      		ldi r24,lo8(.LC1)
+ 422 0038 90E0      		ldi r25,hi8(.LC1)
+ 423 003a 9F93      		push r25
+ 424               	.LCFI7:
+ 425               		.cfi_def_cfa_offset 5
+ 426 003c 8F93      		push r24
+ 427               	.LCFI8:
+ 428               		.cfi_def_cfa_offset 6
+ 429 003e C0E0      		ldi r28,lo8(SD1)
+ 430 0040 D0E0      		ldi r29,hi8(SD1)
+ 431 0042 DF93      		push r29
+ 432               	.LCFI9:
+ 433               		.cfi_def_cfa_offset 7
+ 434 0044 CF93      		push r28
+ 435               	.LCFI10:
+ 436               		.cfi_def_cfa_offset 8
+ 437 0046 0E94 0000 		call chprintf
+ 438               	.LVL26:
+ 288:W_M.c         ****         case(ENCHER_ML):
+ 439               		.loc 1 288 0
+ 440 004a 0F90      		pop __tmp_reg__
+ 441 004c 0F90      		pop __tmp_reg__
+ 442 004e 0F90      		pop __tmp_reg__
+ 443 0050 0F90      		pop __tmp_reg__
+ 444               	.LCFI11:
+ 445               		.cfi_def_cfa_offset 4
+ 446 0052 8091 0000 		lds r24,fsm_ml
+ 447 0056 8630      		cpi r24,lo8(6)
+ 448 0058 01F4      		brne .+2
+ 449 005a 00C0      		rjmp .L24
+ 450 005c 8730      		cpi r24,lo8(7)
+ 451 005e 01F4      		brne .L16
+ 307:W_M.c         ****             break;
+ 452               		.loc 1 307 0
+ 453 0060 8091 0000 		lds r24,lavar
+ 454 0064 8530      		cpi r24,lo8(5)
+ 455 0066 01F0      		breq .L16
+ 311:W_M.c         ****           lavar = LAVAGEM;
+ 456               		.loc 1 311 0
+ 457 0068 8091 0000 		lds r24,fsm_ml+1
+ 458 006c 9091 0000 		lds r25,fsm_ml+1+1
+ 459 0070 0E94 0000 		call spinning
+ 460               	.LVL27:
+ 312:W_M.c         ****           fsm_lavagem_init(&fsm_lvg);
+ 461               		.loc 1 312 0
+ 462 0074 82E0      		ldi r24,lo8(2)
+ 463 0076 8093 0000 		sts lavar,r24
+ 464               	.LVL28:
+ 465               	.LBB164:
+ 466               	.LBB165:
+ 125:W_M.c         ****   st->turns = 0;
+ 467               		.loc 1 125 0
+ 468 007a 88E0      		ldi r24,lo8(8)
+ 469 007c 8093 0000 		sts fsm_lvg,r24
+ 126:W_M.c         ****   st->t_espera = 2;
+ 470               		.loc 1 126 0
+ 471 0080 1092 0000 		sts fsm_lvg+5+1,__zero_reg__
+ 472 0084 1092 0000 		sts fsm_lvg+5,__zero_reg__
+ 127:W_M.c         ****   st->t_giros = 12;
+ 473               		.loc 1 127 0
+ 474 0088 82E0      		ldi r24,lo8(2)
+ 475 008a 90E0      		ldi r25,0
+ 476 008c 9093 0000 		sts fsm_lvg+7+1,r25
+ 477 0090 8093 0000 		sts fsm_lvg+7,r24
+ 128:W_M.c         ****   st->instante = chVTGetSystemTime();
+ 478               		.loc 1 128 0
+ 479 0094 8CE0      		ldi r24,lo8(12)
+ 480 0096 90E0      		ldi r25,0
+ 481 0098 9093 0000 		sts fsm_lvg+9+1,r25
+ 482 009c 8093 0000 		sts fsm_lvg+9,r24
+ 483               	.LBB166:
+ 484               	.LBB167:
+ 485               	.LBB168:
+ 486               	.LBB169:
+ 487               	.LBB170:
+ 437:../../../os/common/ports/AVR/chcore.h **** }
+ 488               		.loc 2 437 0
+ 489               	/* #APP */
+ 490               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
+ 491 00a0 F894      		cli
+ 492               	 ;  0 "" 2
+ 493               	/* #NOAPP */
+ 494               	.LBE170:
+ 495               	.LBE169:
+ 496               	.LBE168:
+ 497               	.LBB171:
+ 498               	.LBB172:
+ 499               		.loc 3 118 0
+ 500 00a2 8091 0000 		lds r24,ch+19
+ 501 00a6 9091 0000 		lds r25,ch+19+1
+ 502               	.LBE172:
+ 503               	.LBE171:
+ 504               	.LBB173:
+ 505               	.LBB174:
+ 506               	.LBB175:
+ 507               	.LBB176:
+ 508               		.loc 2 447 0
+ 509               	/* #APP */
+ 510               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
+ 511 00aa 7894      		sei
+ 512               	 ;  0 "" 2
+ 513               	/* #NOAPP */
+ 514               	.LBE176:
+ 515               	.LBE175:
+ 516               	.LBE174:
+ 517               	.LBE173:
+ 518               	.LBE167:
+ 519               	.LBE166:
+ 129:W_M.c         ****   st->ul_espera = st->instante;
+ 520               		.loc 1 129 0
+ 521 00ac 9093 0000 		sts fsm_lvg+1+1,r25
+ 522 00b0 8093 0000 		sts fsm_lvg+1,r24
+ 130:W_M.c         **** }
+ 523               		.loc 1 130 0
+ 524 00b4 9093 0000 		sts fsm_lvg+3+1,r25
+ 525 00b8 8093 0000 		sts fsm_lvg+3,r24
+ 526               	/* epilogue start */
+ 527               	.LBE165:
+ 528               	.LBE164:
+ 529               		.loc 1 453 0
+ 530 00bc DF91      		pop r29
+ 531 00be CF91      		pop r28
+ 532 00c0 0895      		ret
+ 533               	.LVL29:
+ 534               	.L19:
+ 250:W_M.c         **** 
+ 535               		.loc 1 250 0
+ 536 00c2 8430      		cpi r24,lo8(4)
+ 537 00c4 01F0      		breq .L22
+ 538 00c6 8530      		cpi r24,lo8(5)
+ 539 00c8 01F0      		breq .+2
+ 540 00ca 00C0      		rjmp .L16
+ 541               	.L52:
+ 542 00cc 00C0      		rjmp .L52
+ 543               	.L22:
+ 427:W_M.c         ****           case(GIRA_R_CENTRI):
+ 544               		.loc 1 427 0
+ 545 00ce 8091 0000 		lds r24,fsm_cen
+ 546 00d2 8E30      		cpi r24,lo8(14)
+ 547 00d4 01F0      		breq .+2
+ 548 00d6 00C0      		rjmp .L16
+ 432:W_M.c         ****             // printf("DEBUG: Super CENTRIFUGA - estado GIRA_R_CENTRI\n");
+ 549               		.loc 1 432 0
+ 550 00d8 409A      		sbi 0x8,0
+ 551               	.LBB177:
+ 552               	.LBB178:
+ 553               	.LBB179:
+ 554               	.LBB180:
+ 555               	.LBB181:
+ 437:../../../os/common/ports/AVR/chcore.h **** }
+ 556               		.loc 2 437 0
+ 557               	/* #APP */
+ 558               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
+ 559 00da F894      		cli
+ 560               	 ;  0 "" 2
+ 561               	/* #NOAPP */
+ 562               	.LBE181:
+ 563               	.LBE180:
+ 564               	.LBE179:
+ 565               	.LBB182:
+ 566               	.LBB183:
+ 567               		.loc 3 118 0
+ 568 00dc 8091 0000 		lds r24,ch+19
+ 569 00e0 9091 0000 		lds r25,ch+19+1
+ 570               	.LBE183:
+ 571               	.LBE182:
+ 572               	.LBB184:
+ 573               	.LBB185:
+ 574               	.LBB186:
+ 575               	.LBB187:
+ 576               		.loc 2 447 0
+ 577               	/* #APP */
+ 578               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
+ 579 00e4 7894      		sei
+ 580               	 ;  0 "" 2
+ 581               	/* #NOAPP */
+ 582               	.LBE187:
+ 583               	.LBE186:
+ 584               	.LBE185:
+ 585               	.LBE184:
+ 586               	.LBE178:
+ 587               	.LBE177:
+ 434:W_M.c         ****             // printf("Super:%d - estado:%d\n ",lavar, fsm_cen.cen);
+ 588               		.loc 1 434 0
+ 589 00e6 9093 0000 		sts fsm_cen+1+1,r25
+ 590 00ea 8093 0000 		sts fsm_cen+1,r24
+ 437:W_M.c         ****               palClearPad(IOPORT3, MOTOR_DIR);
+ 591               		.loc 1 437 0
+ 592 00ee 2091 0000 		lds r18,fsm_cen+3
+ 593 00f2 3091 0000 		lds r19,fsm_cen+3+1
+ 594 00f6 821B      		sub r24,r18
+ 595 00f8 930B      		sbc r25,r19
+ 596 00fa 6091 0000 		lds r22,fsm_cen+5
+ 597 00fe 7091 0000 		lds r23,fsm_cen+5+1
+ 598 0102 48E0      		ldi r20,lo8(8)
+ 599 0104 5DE3      		ldi r21,lo8(61)
+ 600 0106 649F      		mul r22,r20
+ 601 0108 9001      		movw r18,r0
+ 602 010a 659F      		mul r22,r21
+ 603 010c 300D      		add r19,r0
+ 604 010e 749F      		mul r23,r20
+ 605 0110 300D      		add r19,r0
+ 606 0112 1124      		clr r1
+ 607 0114 2817      		cp r18,r24
+ 608 0116 3907      		cpc r19,r25
+ 609 0118 00F0      		brlo .+2
+ 610 011a 00C0      		rjmp .L16
+ 438:W_M.c         ****               lavar = PARADA;
+ 611               		.loc 1 438 0
+ 612 011c 4098      		cbi 0x8,0
+ 439:W_M.c         ****               // printf("FIM DA Máquina\n");
+ 613               		.loc 1 439 0
+ 614 011e 1092 0000 		sts lavar,__zero_reg__
+ 615               	/* epilogue start */
+ 616               		.loc 1 453 0
+ 617 0122 DF91      		pop r29
+ 618 0124 CF91      		pop r28
+ 619 0126 0895      		ret
+ 620               	.L18:
+ 379:W_M.c         ****         case(ENCHER_EXG):
+ 621               		.loc 1 379 0
+ 622 0128 8091 0000 		lds r24,fsm_exg
+ 623 012c 8C30      		cpi r24,lo8(12)
+ 624 012e 01F4      		brne .+2
+ 625 0130 00C0      		rjmp .L32
+ 626 0132 8D30      		cpi r24,lo8(13)
+ 627 0134 01F4      		brne .+2
+ 628 0136 00C0      		rjmp .L33
+ 629 0138 8B30      		cpi r24,lo8(11)
+ 630 013a 01F0      		breq .+2
+ 631 013c 00C0      		rjmp .L16
+ 385:W_M.c         ****           if(palReadPad(IOPORT4, SEN_CHEIO) == PAL_HIGH){
+ 632               		.loc 1 385 0
+ 633 013e 2C9A      		sbi 0x5,4
+ 386:W_M.c         ****             // printf("Sensor Cheio: ON\n");
+ 634               		.loc 1 386 0
+ 635 0140 4C9B      		sbis 0x9,4
+ 636 0142 00C0      		rjmp .L16
+ 388:W_M.c         ****             fsm_exg.exg = RODAR_EXG;
+ 637               		.loc 1 388 0
+ 638 0144 2C98      		cbi 0x5,4
+ 389:W_M.c         **** 
+ 639               		.loc 1 389 0
+ 640 0146 8CE0      		ldi r24,lo8(12)
+ 641 0148 8093 0000 		sts fsm_exg,r24
+ 642               	/* epilogue start */
+ 643               		.loc 1 453 0
+ 644 014c DF91      		pop r29
+ 645 014e CF91      		pop r28
+ 646 0150 0895      		ret
+ 647               	.L28:
+ 648               	.LBB188:
+ 649               	.LBB189:
+ 650               	.LBB190:
+ 651               	.LBB191:
+ 652               	.LBB192:
+ 437:../../../os/common/ports/AVR/chcore.h **** }
+ 653               		.loc 2 437 0
+ 654               	/* #APP */
+ 655               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
+ 656 0152 F894      		cli
+ 657               	 ;  0 "" 2
+ 658               	/* #NOAPP */
+ 659               	.LBE192:
+ 660               	.LBE191:
+ 661               	.LBE190:
+ 662               	.LBB193:
+ 663               	.LBB194:
+ 664               		.loc 3 118 0
+ 665 0154 8091 0000 		lds r24,ch+19
+ 666 0158 9091 0000 		lds r25,ch+19+1
+ 667               	.LBE194:
+ 668               	.LBE193:
+ 669               	.LBB195:
+ 670               	.LBB196:
+ 671               	.LBB197:
+ 672               	.LBB198:
+ 673               		.loc 2 447 0
+ 674               	/* #APP */
+ 675               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
+ 676 015c 7894      		sei
+ 677               	 ;  0 "" 2
+ 678               	/* #NOAPP */
+ 679               	.LBE198:
+ 680               	.LBE197:
+ 681               	.LBE196:
+ 682               	.LBE195:
+ 683               	.LBE189:
+ 684               	.LBE188:
+ 342:W_M.c         ****           if(fsm_lvg.instante - fsm_lvg.ul_espera > TIME_S2I(fsm_lvg.t_espera)){
+ 685               		.loc 1 342 0
+ 686 015e 9093 0000 		sts fsm_lvg+1+1,r25
+ 687 0162 8093 0000 		sts fsm_lvg+1,r24
+ 343:W_M.c         ****             fsm_lvg.ul_espera = chVTGetSystemTime();
+ 688               		.loc 1 343 0
+ 689 0166 2091 0000 		lds r18,fsm_lvg+3
+ 690 016a 3091 0000 		lds r19,fsm_lvg+3+1
+ 691 016e 821B      		sub r24,r18
+ 692 0170 930B      		sbc r25,r19
+ 693 0172 6091 0000 		lds r22,fsm_lvg+7
+ 694 0176 7091 0000 		lds r23,fsm_lvg+7+1
+ 695 017a 48E0      		ldi r20,lo8(8)
+ 696 017c 5DE3      		ldi r21,lo8(61)
+ 697 017e 649F      		mul r22,r20
+ 698 0180 9001      		movw r18,r0
+ 699 0182 659F      		mul r22,r21
+ 700 0184 300D      		add r19,r0
+ 701 0186 749F      		mul r23,r20
+ 702 0188 300D      		add r19,r0
+ 703 018a 1124      		clr r1
+ 704 018c 2817      		cp r18,r24
+ 705 018e 3907      		cpc r19,r25
+ 706 0190 00F0      		brlo .+2
+ 707 0192 00C0      		rjmp .L16
+ 708               	.LBB199:
+ 709               	.LBB200:
+ 710               	.LBB201:
+ 711               	.LBB202:
+ 712               	.LBB203:
+ 437:../../../os/common/ports/AVR/chcore.h **** }
+ 713               		.loc 2 437 0
+ 714               	/* #APP */
+ 715               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
+ 716 0194 F894      		cli
+ 717               	 ;  0 "" 2
+ 718               	/* #NOAPP */
+ 719               	.LBE203:
+ 720               	.LBE202:
+ 721               	.LBE201:
+ 722               	.LBB204:
+ 723               	.LBB205:
+ 724               		.loc 3 118 0
+ 725 0196 8091 0000 		lds r24,ch+19
+ 726 019a 9091 0000 		lds r25,ch+19+1
+ 727               	.LBE205:
+ 728               	.LBE204:
+ 729               	.LBB206:
+ 730               	.LBB207:
+ 731               	.LBB208:
+ 732               	.LBB209:
+ 733               		.loc 2 447 0
+ 734               	/* #APP */
+ 735               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
+ 736 019e 7894      		sei
+ 737               	 ;  0 "" 2
+ 738               	/* #NOAPP */
+ 739               	.LBE209:
+ 740               	.LBE208:
+ 741               	.LBE207:
+ 742               	.LBE206:
+ 743               	.LBE200:
+ 744               	.LBE199:
+ 344:W_M.c         ****             if(fsm_lvg.turns >= 3){
+ 745               		.loc 1 344 0
+ 746 01a0 9093 0000 		sts fsm_lvg+3+1,r25
+ 747 01a4 8093 0000 		sts fsm_lvg+3,r24
+ 345:W_M.c         ****               fsm_lvg.turns = 0;
+ 748               		.loc 1 345 0
+ 749 01a8 8091 0000 		lds r24,fsm_lvg+5
+ 750 01ac 9091 0000 		lds r25,fsm_lvg+5+1
+ 751 01b0 8330      		cpi r24,3
+ 752 01b2 9105      		cpc r25,__zero_reg__
+ 753 01b4 04F4      		brge .+2
+ 754 01b6 00C0      		rjmp .L31
+ 346:W_M.c         ****               fsm_lvg.lvg = ESVAZIA_LVG;
+ 755               		.loc 1 346 0
+ 756 01b8 1092 0000 		sts fsm_lvg+5+1,__zero_reg__
+ 757 01bc 1092 0000 		sts fsm_lvg+5,__zero_reg__
+ 347:W_M.c         ****               // printf("Fim giros Lavagem\n");
+ 758               		.loc 1 347 0
+ 759 01c0 8AE0      		ldi r24,lo8(10)
+ 760 01c2 8093 0000 		sts fsm_lvg,r24
+ 761               	/* epilogue start */
+ 762               		.loc 1 453 0
+ 763 01c6 DF91      		pop r29
+ 764 01c8 CF91      		pop r28
+ 765 01ca 0895      		ret
+ 766               	.L24:
+ 290:W_M.c         ****             break;
+ 767               		.loc 1 290 0
+ 768 01cc 8091 0000 		lds r24,lavar
+ 769 01d0 8530      		cpi r24,lo8(5)
+ 770 01d2 01F4      		brne .+2
+ 771 01d4 00C0      		rjmp .L16
+ 295:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Enchendo... \n\r");
+ 772               		.loc 1 295 0
+ 773 01d6 2C9A      		sbi 0x5,4
+ 296:W_M.c         ****           if(palReadPad(IOPORT4, SEN_CHEIO) == PAL_HIGH){
+ 774               		.loc 1 296 0
+ 775 01d8 80E0      		ldi r24,lo8(.LC2)
+ 776 01da 90E0      		ldi r25,hi8(.LC2)
+ 777 01dc 9F93      		push r25
+ 778               	.LCFI12:
+ 779               		.cfi_def_cfa_offset 5
+ 780 01de 8F93      		push r24
+ 781               	.LCFI13:
+ 782               		.cfi_def_cfa_offset 6
+ 783 01e0 DF93      		push r29
+ 784               	.LCFI14:
+ 785               		.cfi_def_cfa_offset 7
+ 786 01e2 CF93      		push r28
+ 787               	.LCFI15:
+ 788               		.cfi_def_cfa_offset 8
+ 789 01e4 0E94 0000 		call chprintf
+ 790               	.LVL30:
+ 297:W_M.c         ****             // printf("Sensor Cheio\n");
+ 791               		.loc 1 297 0
+ 792 01e8 0F90      		pop __tmp_reg__
+ 793 01ea 0F90      		pop __tmp_reg__
+ 794 01ec 0F90      		pop __tmp_reg__
+ 795 01ee 0F90      		pop __tmp_reg__
+ 796               	.LCFI16:
+ 797               		.cfi_def_cfa_offset 4
+ 798 01f0 4C9B      		sbis 0x9,4
+ 799 01f2 00C0      		rjmp .L16
+ 299:W_M.c         ****             palClearPad(IOPORT2, ENCHE_ID);
+ 800               		.loc 1 299 0
+ 801 01f4 80E0      		ldi r24,lo8(.LC3)
+ 802 01f6 90E0      		ldi r25,hi8(.LC3)
+ 803 01f8 9F93      		push r25
+ 804               	.LCFI17:
+ 805               		.cfi_def_cfa_offset 5
+ 806 01fa 8F93      		push r24
+ 807               	.LCFI18:
+ 808               		.cfi_def_cfa_offset 6
+ 809 01fc DF93      		push r29
+ 810               	.LCFI19:
+ 811               		.cfi_def_cfa_offset 7
+ 812 01fe CF93      		push r28
+ 813               	.LCFI20:
+ 814               		.cfi_def_cfa_offset 8
+ 815 0200 0E94 0000 		call chprintf
+ 816               	.LVL31:
+ 300:W_M.c         ****             fsm_ml.ml = RODAR_ML;
+ 817               		.loc 1 300 0
+ 818 0204 2C98      		cbi 0x5,4
+ 301:W_M.c         ****             // printf("Início Giros Molho\n");
+ 819               		.loc 1 301 0
+ 820 0206 87E0      		ldi r24,lo8(7)
+ 821 0208 8093 0000 		sts fsm_ml,r24
+ 822 020c 0F90      		pop __tmp_reg__
+ 823 020e 0F90      		pop __tmp_reg__
+ 824 0210 0F90      		pop __tmp_reg__
+ 825 0212 0F90      		pop __tmp_reg__
+ 826               	.LCFI21:
+ 827               		.cfi_def_cfa_offset 4
+ 828               	/* epilogue start */
+ 829               		.loc 1 453 0
+ 830 0214 DF91      		pop r29
+ 831 0216 CF91      		pop r28
+ 832 0218 0895      		ret
+ 833               	.L53:
+ 331:W_M.c         ****           fsm_lvg.ul_espera = chVTGetSystemTime();
+ 834               		.loc 1 331 0
+ 835 021a 8091 0000 		lds r24,fsm_lvg+9
+ 836 021e 9091 0000 		lds r25,fsm_lvg+9+1
+ 837 0222 0E94 0000 		call spinning
+ 838               	.LVL32:
+ 839               	.LBB210:
+ 840               	.LBB211:
+ 841               	.LBB212:
+ 842               	.LBB213:
+ 843               	.LBB214:
+ 437:../../../os/common/ports/AVR/chcore.h **** }
+ 844               		.loc 2 437 0
+ 845               	/* #APP */
+ 846               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
+ 847 0226 F894      		cli
+ 848               	 ;  0 "" 2
+ 849               	/* #NOAPP */
+ 850               	.LBE214:
+ 851               	.LBE213:
+ 852               	.LBE212:
+ 853               	.LBB215:
+ 854               	.LBB216:
+ 855               		.loc 3 118 0
+ 856 0228 8091 0000 		lds r24,ch+19
+ 857 022c 9091 0000 		lds r25,ch+19+1
+ 858               	.LBE216:
+ 859               	.LBE215:
+ 860               	.LBB217:
+ 861               	.LBB218:
+ 862               	.LBB219:
+ 863               	.LBB220:
+ 864               		.loc 2 447 0
+ 865               	/* #APP */
+ 866               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
+ 867 0230 7894      		sei
+ 868               	 ;  0 "" 2
+ 869               	/* #NOAPP */
+ 870               	.LBE220:
+ 871               	.LBE219:
+ 872               	.LBE218:
+ 873               	.LBE217:
+ 874               	.LBE211:
+ 875               	.LBE210:
+ 332:W_M.c         ****           fsm_lvg.lvg = ESPERA_LVG;
+ 876               		.loc 1 332 0
+ 877 0232 9093 0000 		sts fsm_lvg+3+1,r25
+ 878 0236 8093 0000 		sts fsm_lvg+3,r24
+ 333:W_M.c         ****           // printf("DEBUG: Super LAVAGEM - estado ESPERA\n");
+ 879               		.loc 1 333 0
+ 880 023a 89E0      		ldi r24,lo8(9)
+ 881 023c 8093 0000 		sts fsm_lvg,r24
+ 882               	/* epilogue start */
+ 883               		.loc 1 453 0
+ 884 0240 DF91      		pop r29
+ 885 0242 CF91      		pop r28
+ 886 0244 0895      		ret
+ 887               	.L29:
+ 361:W_M.c         ****           // printf("DEBUG: Super LAVAGEM - estado ESVAZIA_LVG\n");
+ 888               		.loc 1 361 0
+ 889 0246 2D9A      		sbi 0x5,5
+ 363:W_M.c         ****             // printf("Sensor Vazio: ON\n");
+ 890               		.loc 1 363 0
+ 891 0248 4B9B      		sbis 0x9,3
+ 892 024a 00C0      		rjmp .L16
+ 365:W_M.c         ****             // printf("Fim LAVAGEM\n");
+ 893               		.loc 1 365 0
+ 894 024c 2D98      		cbi 0x5,5
+ 368:W_M.c         ****               fsm_enxague_init(&fsm_exg);
+ 895               		.loc 1 368 0
+ 896 024e 83E0      		ldi r24,lo8(3)
+ 897 0250 8093 0000 		sts lavar,r24
+ 898               	.LVL33:
+ 899               	.LBB221:
+ 900               	.LBB222:
+ 135:W_M.c         ****   st->t_giro = 15;
+ 901               		.loc 1 135 0
+ 902 0254 8BE0      		ldi r24,lo8(11)
+ 903 0256 8093 0000 		sts fsm_exg,r24
+ 136:W_M.c         **** }
+ 904               		.loc 1 136 0
+ 905 025a 8FE0      		ldi r24,lo8(15)
+ 906 025c 90E0      		ldi r25,0
+ 907 025e 9093 0000 		sts fsm_exg+1+1,r25
+ 908 0262 8093 0000 		sts fsm_exg+1,r24
+ 909               	/* epilogue start */
+ 910               	.LBE222:
+ 911               	.LBE221:
+ 912               		.loc 1 453 0
+ 913 0266 DF91      		pop r29
+ 914 0268 CF91      		pop r28
+ 915 026a 0895      		ret
+ 916               	.LVL34:
+ 917               	.L32:
+ 399:W_M.c         ****           fsm_exg.exg = ESVAZIA_EXG;
+ 918               		.loc 1 399 0
+ 919 026c 8091 0000 		lds r24,fsm_exg+1
+ 920 0270 9091 0000 		lds r25,fsm_exg+1+1
+ 921 0274 0E94 0000 		call spinning
+ 922               	.LVL35:
+ 400:W_M.c         **** 
+ 923               		.loc 1 400 0
+ 924 0278 8DE0      		ldi r24,lo8(13)
+ 925 027a 8093 0000 		sts fsm_exg,r24
+ 926               	/* epilogue start */
+ 927               		.loc 1 453 0
+ 928 027e DF91      		pop r29
+ 929 0280 CF91      		pop r28
+ 930 0282 0895      		ret
+ 931               	.L33:
+ 410:W_M.c         ****           if(palReadPad(IOPORT4, SEN_VAZIO) == PAL_HIGH){
+ 932               		.loc 1 410 0
+ 933 0284 2D9A      		sbi 0x5,5
+ 411:W_M.c         ****              // printf("Sensor Vazio: ON\n");
+ 934               		.loc 1 411 0
+ 935 0286 4B9B      		sbis 0x9,3
+ 936 0288 00C0      		rjmp .L16
+ 413:W_M.c         ****              lavar = CENTRIFUGA;
+ 937               		.loc 1 413 0
+ 938 028a 2D98      		cbi 0x5,5
+ 414:W_M.c         ****              fsm_centrifuga_init(&fsm_cen);
+ 939               		.loc 1 414 0
+ 940 028c 84E0      		ldi r24,lo8(4)
+ 941 028e 8093 0000 		sts lavar,r24
+ 942               	.LVL36:
+ 943               	.LBB223:
+ 944               	.LBB224:
+ 141:W_M.c         ****   st->tempo = chVTGetSystemTime();
+ 945               		.loc 1 141 0
+ 946 0292 8EE0      		ldi r24,lo8(14)
+ 947 0294 8093 0000 		sts fsm_cen,r24
+ 948               	.LBB225:
+ 949               	.LBB226:
+ 950               	.LBB227:
+ 951               	.LBB228:
+ 952               	.LBB229:
+ 437:../../../os/common/ports/AVR/chcore.h **** }
+ 953               		.loc 2 437 0
+ 954               	/* #APP */
+ 955               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
+ 956 0298 F894      		cli
+ 957               	 ;  0 "" 2
+ 958               	/* #NOAPP */
+ 959               	.LBE229:
+ 960               	.LBE228:
+ 961               	.LBE227:
+ 962               	.LBB230:
+ 963               	.LBB231:
+ 964               		.loc 3 118 0
+ 965 029a 8091 0000 		lds r24,ch+19
+ 966 029e 9091 0000 		lds r25,ch+19+1
+ 967               	.LBE231:
+ 968               	.LBE230:
+ 969               	.LBB232:
+ 970               	.LBB233:
+ 971               	.LBB234:
+ 972               	.LBB235:
+ 973               		.loc 2 447 0
+ 974               	/* #APP */
+ 975               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
+ 976 02a2 7894      		sei
+ 977               	 ;  0 "" 2
+ 978               	/* #NOAPP */
+ 979               	.LBE235:
+ 980               	.LBE234:
+ 981               	.LBE233:
+ 982               	.LBE232:
+ 983               	.LBE226:
+ 984               	.LBE225:
+ 142:W_M.c         ****   st->ul_centri = st->tempo;
+ 985               		.loc 1 142 0
+ 986 02a4 9093 0000 		sts fsm_cen+1+1,r25
+ 987 02a8 8093 0000 		sts fsm_cen+1,r24
+ 143:W_M.c         ****   st->t_centri = 20;
+ 988               		.loc 1 143 0
+ 989 02ac 9093 0000 		sts fsm_cen+3+1,r25
+ 990 02b0 8093 0000 		sts fsm_cen+3,r24
+ 144:W_M.c         **** }
+ 991               		.loc 1 144 0
+ 992 02b4 84E1      		ldi r24,lo8(20)
+ 993 02b6 90E0      		ldi r25,0
+ 994 02b8 9093 0000 		sts fsm_cen+5+1,r25
+ 995 02bc 8093 0000 		sts fsm_cen+5,r24
+ 996               	/* epilogue start */
+ 997               	.LBE224:
+ 998               	.LBE223:
+ 999               		.loc 1 453 0
+ 1000 02c0 DF91      		pop r29
+ 1001 02c2 CF91      		pop r28
+ 1002 02c4 0895      		ret
+ 1003               	.LVL37:
+ 1004               	.L31:
+ 351:W_M.c         ****               fsm_lvg.lvg = RODAR_LVG;
+ 1005               		.loc 1 351 0
+ 1006 02c6 0196      		adiw r24,1
+ 1007 02c8 9093 0000 		sts fsm_lvg+5+1,r25
+ 1008 02cc 8093 0000 		sts fsm_lvg+5,r24
+ 352:W_M.c         ****             } // fim if voltas
+ 1009               		.loc 1 352 0
+ 1010 02d0 88E0      		ldi r24,lo8(8)
+ 1011 02d2 8093 0000 		sts fsm_lvg,r24
+ 1012               	/* epilogue start */
+ 1013               		.loc 1 453 0
+ 1014 02d6 DF91      		pop r29
+ 1015 02d8 CF91      		pop r28
+ 1016 02da 0895      		ret
+ 1017               		.cfi_endproc
+ 1018               	.LFE174:
+ 1020               		.section	.rodata.str1.1
+ 1021               	.LC4:
+ 1022 0041 494E 4943 		.string	"INICIO M\303\201QUINA\n\r"
+ 1022      494F 204D 
+ 1022      C381 5155 
+ 1022      494E 410A 
+ 1022      0D00 
+ 1023               	.LC5:
+ 1024 0053 2564 200A 		.string	"%d \n\r"
+ 1024      0D00 
+ 1025               		.section	.text.startup.main,"ax",@progbits
+ 1026               	.global	main
+ 1028               	main:
+ 1029               	.LFB175:
+ 454:W_M.c         **** 
+ 455:W_M.c         **** 
+ 456:W_M.c         **** int main(void) {
+ 1030               		.loc 1 456 0
+ 1031               		.cfi_startproc
+ 1032               	/* prologue: function */
+ 1033               	/* frame size = 0 */
+ 1034               	/* stack size = 0 */
+ 1035               	.L__stack_usage = 0
+ 457:W_M.c         ****   halInit();
+ 1036               		.loc 1 457 0
+ 1037 0000 0E94 0000 		call halInit
+ 1038               	.LVL38:
+ 458:W_M.c         ****   chSysInit();
+ 1039               		.loc 1 458 0
+ 1040 0004 0E94 0000 		call chSysInit
+ 1041               	.LVL39:
+ 459:W_M.c         ****   sdStart(&SD1, 0);
+ 1042               		.loc 1 459 0
+ 1043 0008 60E0      		ldi r22,0
+ 1044 000a 70E0      		ldi r23,0
+ 1045 000c 80E0      		ldi r24,lo8(SD1)
+ 1046 000e 90E0      		ldi r25,hi8(SD1)
+ 1047 0010 0E94 0000 		call sdStart
+ 1048               	.LVL40:
+ 460:W_M.c         ****   chprintf((BaseSequentialStream *)&SD1, "INICIO MÁQUINA\n\r");
+ 1049               		.loc 1 460 0
+ 1050 0014 80E0      		ldi r24,lo8(.LC4)
+ 1051 0016 90E0      		ldi r25,hi8(.LC4)
+ 1052 0018 9F93      		push r25
+ 1053               	.LCFI22:
+ 1054               		.cfi_def_cfa_offset 3
+ 1055 001a 8F93      		push r24
+ 1056               	.LCFI23:
+ 1057               		.cfi_def_cfa_offset 4
+ 1058 001c C0E0      		ldi r28,lo8(SD1)
+ 1059 001e D0E0      		ldi r29,hi8(SD1)
+ 1060 0020 DF93      		push r29
+ 1061               	.LCFI24:
+ 1062               		.cfi_def_cfa_offset 5
+ 1063 0022 CF93      		push r28
+ 1064               	.LCFI25:
+ 1065               		.cfi_def_cfa_offset 6
+ 1066 0024 0E94 0000 		call chprintf
+ 1067               	.LVL41:
+ 461:W_M.c         ****   starting();
+ 1068               		.loc 1 461 0
+ 1069 0028 0E94 0000 		call starting
+ 1070               	.LVL42:
+ 462:W_M.c         ****   lavar = MOLHO;
+ 1071               		.loc 1 462 0
+ 1072 002c 81E0      		ldi r24,lo8(1)
+ 1073 002e 8093 0000 		sts lavar,r24
+ 1074               	.LVL43:
+ 1075               	.LBB236:
+ 1076               	.LBB237:
+ 119:W_M.c         ****   st->t_giro = 10;
+ 1077               		.loc 1 119 0
+ 1078 0032 96E0      		ldi r25,lo8(6)
+ 1079 0034 9093 0000 		sts fsm_ml,r25
+ 120:W_M.c         **** }
+ 1080               		.loc 1 120 0
+ 1081 0038 2AE0      		ldi r18,lo8(10)
+ 1082 003a 30E0      		ldi r19,0
+ 1083 003c 3093 0000 		sts fsm_ml+1+1,r19
+ 1084 0040 2093 0000 		sts fsm_ml+1,r18
+ 1085               	.LVL44:
+ 1086               	.LBE237:
+ 1087               	.LBE236:
+ 463:W_M.c         ****   fsm_molho_init(&fsm_ml);
+ 464:W_M.c         ****   chprintf((BaseSequentialStream *)&SD1, "%d \n\r", lavar);
+ 1088               		.loc 1 464 0
+ 1089 0044 1F92      		push __zero_reg__
+ 1090               	.LCFI26:
+ 1091               		.cfi_def_cfa_offset 7
+ 1092 0046 8F93      		push r24
+ 1093               	.LCFI27:
+ 1094               		.cfi_def_cfa_offset 8
+ 1095 0048 80E0      		ldi r24,lo8(.LC5)
+ 1096 004a 90E0      		ldi r25,hi8(.LC5)
+ 1097 004c 9F93      		push r25
+ 1098               	.LCFI28:
+ 1099               		.cfi_def_cfa_offset 9
+ 1100 004e 8F93      		push r24
+ 1101               	.LCFI29:
+ 1102               		.cfi_def_cfa_offset 10
+ 1103 0050 DF93      		push r29
+ 1104               	.LCFI30:
+ 1105               		.cfi_def_cfa_offset 11
+ 1106 0052 CF93      		push r28
+ 1107               	.LCFI31:
+ 1108               		.cfi_def_cfa_offset 12
+ 1109 0054 0E94 0000 		call chprintf
+ 1110               	.LVL45:
+ 1111 0058 8DB7      		in r24,__SP_L__
+ 1112 005a 9EB7      		in r25,__SP_H__
+ 1113 005c 0A96      		adiw r24,10
+ 1114 005e 0FB6      		in __tmp_reg__,__SREG__
+ 1115 0060 F894      		cli
+ 1116 0062 9EBF      		out __SP_H__,r25
+ 1117 0064 0FBE      		out __SREG__,__tmp_reg__
+ 1118 0066 8DBF      		out __SP_L__,r24
+ 1119               	.LCFI32:
+ 1120               		.cfi_def_cfa_offset 2
+ 1121               	.L55:
+ 465:W_M.c         **** 
+ 466:W_M.c         ****   while(1){
+ 467:W_M.c         ****     lavar_maquina();
+ 1122               		.loc 1 467 0 discriminator 1
+ 1123 0068 0E94 0000 		call lavar_maquina
+ 1124               	.LVL46:
+ 1125 006c 00C0      		rjmp .L55
+ 1126               		.cfi_endproc
+ 1127               	.LFE175:
+ 1129               		.comm	fsm_cen,7,1
+ 1130               		.comm	fsm_exg,3,1
+ 1131               		.comm	fsm_lvg,11,1
+ 1132               		.comm	fsm_ml,3,1
+ 1133               		.comm	fsm_prd,2,1
+ 1134               	.global	lavar
+ 1135               		.section	.bss.lavar,"aw",@nobits
+ 1138               	lavar:
+ 1139 0000 00        		.zero	1
+ 1140               		.text
+ 1141               	.Letext0:
+ 1142               		.file 4 "/usr/lib/avr/include/stdint.h"
+ 1143               		.file 5 "/usr/lib/gcc/avr/5.4.0/include/stddef.h"
+ 1144               		.file 6 "../../../os/common/ports/AVR/compilers/GCC/chtypes.h"
+ 1145               		.file 7 "../../../os/rt/include/chsystypes.h"
+ 1146               		.file 8 "../../../os/rt/include/chschd.h"
+ 1147               		.file 9 "../../../os/rt/include/chtime.h"
+ 1148               		.file 10 "../../../os/rt/include/chsem.h"
+ 1149               		.file 11 "../../../os/rt/include/chmtx.h"
+ 1150               		.file 12 "../../../os/rt/include/chevents.h"
+ 1151               		.file 13 "../../../os/hal/include/hal_streams.h"
+ 1152               		.file 14 "../../../os/hal/include/hal_queues.h"
+ 1153               		.file 15 "../../../os/hal/ports/AVR/MEGA/LLD/GPIOv1/hal_pal_lld.h"
+ 1154               		.file 16 "../../../os/hal/include/hal_serial.h"
+ 1155               		.file 17 "../../../os/rt/include/chsys.h"
+ 1156               		.file 18 "../../../os/hal/ports/AVR/MEGA/LLD/USARTv1/hal_serial_lld.h"
+ 1157               		.file 19 "../../../os/hal/lib/streams/chprintf.h"
+ 1158               		.file 20 "../../../os/hal/include/hal.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 W_M.c
+     /tmp/cctuhVIU.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/cctuhVIU.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/cctuhVIU.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/cctuhVIU.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/cctuhVIU.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/cctuhVIU.s:16     .text.starting:0000000000000000 starting
+     /tmp/cctuhVIU.s:174    .text.spinning:0000000000000000 spinning
+     /tmp/cctuhVIU.s:1138   .bss.lavar:0000000000000000 lavar
+     /tmp/cctuhVIU.s:375    .text.lavar_maquina:0000000000000000 lavar_maquina
+                            *COM*:000000000000000b fsm_lvg
+                            *COM*:0000000000000003 fsm_ml
+                            *COM*:0000000000000007 fsm_cen
+                            *COM*:0000000000000003 fsm_exg
+     /tmp/cctuhVIU.s:1028   .text.startup.main:0000000000000000 main
+                            *COM*:0000000000000002 fsm_prd
+
+UNDEFINED SYMBOLS
+_pal_lld_setgroupmode
+SD1
+chprintf
+ch
+halInit
+chSysInit
+sdStart
+__do_copy_data
+__do_clear_bss
