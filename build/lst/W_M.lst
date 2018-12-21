@@ -49,7 +49,7 @@
   28:W_M.c         **** #define EMER 2
   29:W_M.c         **** 
   30:W_M.c         **** /* System variables*/
-  31:W_M.c         **** #define GIRO_TEMPO 1000
+  31:W_M.c         **** #define GIRO_TEMPO 500
   32:W_M.c         **** 
   33:W_M.c         **** /* All State machines of the project */
   34:W_M.c         **** 
@@ -142,15 +142,15 @@
  121:W_M.c         **** static void fsm_molho_init(fsm_molho_s *st)
  122:W_M.c         **** {
  123:W_M.c         ****   st->ml = ENCHER_ML;
- 124:W_M.c         ****   st->t_giro = 4000;
+ 124:W_M.c         ****   st->t_giro = 2000;
  125:W_M.c         **** }
  126:W_M.c         **** 
  127:W_M.c         **** static void fsm_lavagem_init(fsm_lavagem_s *st)
  128:W_M.c         **** {
  129:W_M.c         ****   st->lvg = RODAR_LVG;
  130:W_M.c         ****   st->turns = 0;
- 131:W_M.c         ****   st->t_espera = 2000;
- 132:W_M.c         ****   st->t_giros = 4000;
+ 131:W_M.c         ****   st->t_espera = 1000;
+ 132:W_M.c         ****   st->t_giros = 2400;
  133:W_M.c         ****   st->instante = chVTGetSystemTime();
  134:W_M.c         ****   st->ul_espera = st->instante;
  135:W_M.c         **** }
@@ -158,7 +158,7 @@
  137:W_M.c         **** static void fsm_enxague_init(fsm_enxague_s *st)
  138:W_M.c         **** {
  139:W_M.c         ****   st->exg = ENCHER_EXG;
- 140:W_M.c         ****   st->t_giro = 4000;
+ 140:W_M.c         ****   st->t_giro = 3000;
  141:W_M.c         **** }
  142:W_M.c         **** 
  143:W_M.c         **** static void fsm_centrifuga_init(fsm_centrifuga_s *st)
@@ -1200,8 +1200,8 @@
  365 007a CE01      		movw r24,r28
  366 007c 821B      		sub r24,r18
  367 007e 930B      		sbc r25,r19
- 368 0080 8830      		cpi r24,8
- 369 0082 9D43      		sbci r25,61
+ 368 0080 8438      		cpi r24,-124
+ 369 0082 9E41      		sbci r25,30
  370 0084 00F4      		brsh .L18
  371 0086 80E0      		ldi r24,0
  372               	.L8:
@@ -1240,8 +1240,8 @@
  398 00a6 AE01      		movw r20,r28
  399 00a8 421B      		sub r20,r18
  400 00aa 530B      		sbc r21,r19
- 401 00ac 4830      		cpi r20,8
- 402 00ae 5D43      		sbci r21,61
+ 401 00ac 4438      		cpi r20,-124
+ 402 00ae 5E41      		sbci r21,30
  403 00b0 00F4      		brsh .L19
  404               	.LVL24:
  405               	.L11:
@@ -1404,163 +1404,240 @@
  544      6573 7461 
  544      646F 2069 
  545               	.LC6:
- 546 0063 496E 6963 		.string	"Inicio do processo\n\r"
- 546      696F 2064 
- 546      6F20 7072 
- 546      6F63 6573 
- 546      736F 0A0D 
+ 546 0063 4D6F 646F 		.string	"Modo inicial: Molho\n\r"
+ 546      2069 6E69 
+ 546      6369 616C 
+ 546      3A20 4D6F 
+ 546      6C68 6F0A 
  547               	.LC7:
- 548 0078 456E 6368 		.string	"Enchendo... \n\r"
- 548      656E 646F 
- 548      2E2E 2E20 
- 548      0A0D 00
+ 548 0079 4D6F 646F 		.string	"Modo inicial: Lavagem \n\r"
+ 548      2069 6E69 
+ 548      6369 616C 
+ 548      3A20 4C61 
+ 548      7661 6765 
  549               	.LC8:
- 550 0087 5365 6E73 		.string	"Sensor cheio\n\r"
- 550      6F72 2063 
- 550      6865 696F 
- 550      0A0D 00
+ 550 0092 4D6F 646F 		.string	"Modo inicial: Enxague\n\r"
+ 550      2069 6E69 
+ 550      6369 616C 
+ 550      3A20 456E 
+ 550      7861 6775 
  551               	.LC9:
- 552 0096 4769 726F 		.string	"Giros Molho\n\r"
- 552      7320 4D6F 
- 552      6C68 6F0A 
- 552      0D00 
+ 552 00aa 4D6F 646F 		.string	"Modo inicial: Centrifuga\n\r"
+ 552      2069 6E69 
+ 552      6369 616C 
+ 552      3A20 4365 
+ 552      6E74 7269 
  553               	.LC10:
- 554 00a4 4649 4D20 		.string	"FIM Molho\n\r"
- 554      4D6F 6C68 
- 554      6F0A 0D00 
+ 554 00c5 496E 6963 		.string	"Inicio do processo\n\r"
+ 554      696F 2064 
+ 554      6F20 7072 
+ 554      6F63 6573 
+ 554      736F 0A0D 
  555               	.LC11:
- 556 00b0 496E 6963 		.string	"Inicio LAVAGEM\n\r"
- 556      696F 204C 
- 556      4156 4147 
- 556      454D 0A0D 
- 556      00
+ 556 00da 456E 6368 		.string	"Enchendo para o Molho \n\r"
+ 556      656E 646F 
+ 556      2070 6172 
+ 556      6120 6F20 
+ 556      4D6F 6C68 
  557               	.LC12:
- 558 00c1 4769 726F 		.string	"Giros Lavagem\n\r"
- 558      7320 4C61 
- 558      7661 6765 
- 558      6D0A 0D00 
+ 558 00f3 456E 6368 		.string	"Enchendo para o enxague\n\r"
+ 558      656E 646F 
+ 558      2070 6172 
+ 558      6120 6F20 
+ 558      656E 7861 
  559               	.LC13:
- 560 00d1 4573 7065 		.string	"Espera Lavagem\n\r"
- 560      7261 204C 
- 560      6176 6167 
- 560      656D 0A0D 
- 560      00
+ 560 010d 5365 6E73 		.string	"Sensor cheio\n\r"
+ 560      6F72 2063 
+ 560      6865 696F 
+ 560      0A0D 00
  561               	.LC14:
- 562 00e2 4573 7661 		.string	"Esvazia Lavagem \n\r"
- 562      7A69 6120 
- 562      4C61 7661 
- 562      6765 6D20 
- 562      0A0D 00
+ 562 011c 4769 726F 		.string	"Giros Molho\n\r"
+ 562      7320 4D6F 
+ 562      6C68 6F0A 
+ 562      0D00 
  563               	.LC15:
- 564 00f5 4669 6D20 		.string	"Fim Lavagem\n\r"
- 564      4C61 7661 
- 564      6765 6D0A 
- 564      0D00 
+ 564 012a 4649 4D20 		.string	"FIM Molho\n\r"
+ 564      4D6F 6C68 
+ 564      6F0A 0D00 
  565               	.LC16:
- 566 0103 496E 6963 		.string	"Inicio Enxague\n\r"
- 566      696F 2045 
- 566      6E78 6167 
- 566      7565 0A0D 
+ 566 0136 496E 6963 		.string	"Inicio LAVAGEM\n\r"
+ 566      696F 204C 
+ 566      4156 4147 
+ 566      454D 0A0D 
  566      00
  567               	.LC17:
- 568 0114 456E 6368 		.string	"Enche Enxague\n\r"
- 568      6520 456E 
- 568      7861 6775 
- 568      650A 0D00 
+ 568 0147 4769 726F 		.string	"Giros Lavagem\n\r"
+ 568      7320 4C61 
+ 568      7661 6765 
+ 568      6D0A 0D00 
  569               	.LC18:
- 570 0124 526F 6461 		.string	"Rodar Enxague\n\r"
- 570      7220 456E 
- 570      7861 6775 
- 570      650A 0D00 
+ 570 0157 4573 7065 		.string	"Espera Lavagem\n\r"
+ 570      7261 204C 
+ 570      6176 6167 
+ 570      656D 0A0D 
+ 570      00
  571               	.LC19:
- 572 0134 4573 7661 		.string	"Esvazia Enxague\n\r"
+ 572 0168 4573 7661 		.string	"Esvazia Lavagem \n\r"
  572      7A69 6120 
- 572      456E 7861 
- 572      6775 650A 
- 572      0D00 
+ 572      4C61 7661 
+ 572      6765 6D20 
+ 572      0A0D 00
  573               	.LC20:
- 574 0146 4669 6D20 		.string	"Fim Enxague\n\r"
- 574      456E 7861 
- 574      6775 650A 
+ 574 017b 4669 6D20 		.string	"Fim Lavagem\n\r"
+ 574      4C61 7661 
+ 574      6765 6D0A 
  574      0D00 
  575               	.LC21:
- 576 0154 496E 6963 		.string	"Inicio Centrifuga\n\r"
- 576      696F 2043 
- 576      656E 7472 
- 576      6966 7567 
- 576      610A 0D00 
- 577               		.section	.text.lavar_maquina,"ax",@progbits
- 578               	.global	lavar_maquina
- 580               	lavar_maquina:
- 581               	.LFB175:
+ 576 0189 496E 6963 		.string	"Inicio Enxague\n\r"
+ 576      696F 2045 
+ 576      6E78 6167 
+ 576      7565 0A0D 
+ 576      00
+ 577               	.LC22:
+ 578 019a 456E 6368 		.string	"Enche Enxague\n\r"
+ 578      6520 456E 
+ 578      7861 6775 
+ 578      650A 0D00 
+ 579               	.LC23:
+ 580 01aa 526F 6461 		.string	"Rodar Enxague\n\r"
+ 580      7220 456E 
+ 580      7861 6775 
+ 580      650A 0D00 
+ 581               	.LC24:
+ 582 01ba 4573 7661 		.string	"Esvazia Enxague\n\r"
+ 582      7A69 6120 
+ 582      456E 7861 
+ 582      6775 650A 
+ 582      0D00 
+ 583               	.LC25:
+ 584 01cc 4669 6D20 		.string	"Fim Enxague\n\r"
+ 584      456E 7861 
+ 584      6775 650A 
+ 584      0D00 
+ 585               	.LC26:
+ 586 01da 496E 6963 		.string	"Inicio Centrifuga\n\r"
+ 586      696F 2043 
+ 586      656E 7472 
+ 586      6966 7567 
+ 586      610A 0D00 
+ 587               	.LC27:
+ 588 01ee 4649 4D20 		.string	"FIM DO PROCESSO\n\r"
+ 588      444F 2050 
+ 588      524F 4345 
+ 588      5353 4F0A 
+ 588      0D00 
+ 589               		.section	.text.lavar_maquina,"ax",@progbits
+ 590               	.global	lavar_maquina
+ 592               	lavar_maquina:
+ 593               	.LFB175:
  261:W_M.c         **** 
  262:W_M.c         **** /* Main Machine */
  263:W_M.c         **** 
  264:W_M.c         **** void lavar_maquina(){
- 582               		.loc 1 264 0
- 583               		.cfi_startproc
- 584 0000 CF92      		push r12
- 585               	.LCFI32:
- 586               		.cfi_def_cfa_offset 3
- 587               		.cfi_offset 12, -2
- 588 0002 DF92      		push r13
- 589               	.LCFI33:
- 590               		.cfi_def_cfa_offset 4
- 591               		.cfi_offset 13, -3
- 592 0004 EF92      		push r14
- 593               	.LCFI34:
- 594               		.cfi_def_cfa_offset 5
- 595               		.cfi_offset 14, -4
- 596 0006 FF92      		push r15
- 597               	.LCFI35:
- 598               		.cfi_def_cfa_offset 6
- 599               		.cfi_offset 15, -5
- 600 0008 0F93      		push r16
- 601               	.LCFI36:
- 602               		.cfi_def_cfa_offset 7
- 603               		.cfi_offset 16, -6
- 604 000a 1F93      		push r17
- 605               	.LCFI37:
- 606               		.cfi_def_cfa_offset 8
- 607               		.cfi_offset 17, -7
- 608 000c CF93      		push r28
- 609               	.LCFI38:
- 610               		.cfi_def_cfa_offset 9
- 611               		.cfi_offset 28, -8
- 612 000e DF93      		push r29
- 613               	.LCFI39:
- 614               		.cfi_def_cfa_offset 10
- 615               		.cfi_offset 29, -9
- 616               	/* prologue: function */
- 617               	/* frame size = 0 */
- 618               	/* stack size = 8 */
- 619               	.L__stack_usage = 8
+ 594               		.loc 1 264 0
+ 595               		.cfi_startproc
+ 596 0000 2F92      		push r2
+ 597               	.LCFI32:
+ 598               		.cfi_def_cfa_offset 3
+ 599               		.cfi_offset 2, -2
+ 600 0002 3F92      		push r3
+ 601               	.LCFI33:
+ 602               		.cfi_def_cfa_offset 4
+ 603               		.cfi_offset 3, -3
+ 604 0004 4F92      		push r4
+ 605               	.LCFI34:
+ 606               		.cfi_def_cfa_offset 5
+ 607               		.cfi_offset 4, -4
+ 608 0006 5F92      		push r5
+ 609               	.LCFI35:
+ 610               		.cfi_def_cfa_offset 6
+ 611               		.cfi_offset 5, -5
+ 612 0008 6F92      		push r6
+ 613               	.LCFI36:
+ 614               		.cfi_def_cfa_offset 7
+ 615               		.cfi_offset 6, -6
+ 616 000a 7F92      		push r7
+ 617               	.LCFI37:
+ 618               		.cfi_def_cfa_offset 8
+ 619               		.cfi_offset 7, -7
+ 620 000c 8F92      		push r8
+ 621               	.LCFI38:
+ 622               		.cfi_def_cfa_offset 9
+ 623               		.cfi_offset 8, -8
+ 624 000e 9F92      		push r9
+ 625               	.LCFI39:
+ 626               		.cfi_def_cfa_offset 10
+ 627               		.cfi_offset 9, -9
+ 628 0010 AF92      		push r10
+ 629               	.LCFI40:
+ 630               		.cfi_def_cfa_offset 11
+ 631               		.cfi_offset 10, -10
+ 632 0012 BF92      		push r11
+ 633               	.LCFI41:
+ 634               		.cfi_def_cfa_offset 12
+ 635               		.cfi_offset 11, -11
+ 636 0014 CF92      		push r12
+ 637               	.LCFI42:
+ 638               		.cfi_def_cfa_offset 13
+ 639               		.cfi_offset 12, -12
+ 640 0016 DF92      		push r13
+ 641               	.LCFI43:
+ 642               		.cfi_def_cfa_offset 14
+ 643               		.cfi_offset 13, -13
+ 644 0018 EF92      		push r14
+ 645               	.LCFI44:
+ 646               		.cfi_def_cfa_offset 15
+ 647               		.cfi_offset 14, -14
+ 648 001a FF92      		push r15
+ 649               	.LCFI45:
+ 650               		.cfi_def_cfa_offset 16
+ 651               		.cfi_offset 15, -15
+ 652 001c 0F93      		push r16
+ 653               	.LCFI46:
+ 654               		.cfi_def_cfa_offset 17
+ 655               		.cfi_offset 16, -16
+ 656 001e 1F93      		push r17
+ 657               	.LCFI47:
+ 658               		.cfi_def_cfa_offset 18
+ 659               		.cfi_offset 17, -17
+ 660 0020 CF93      		push r28
+ 661               	.LCFI48:
+ 662               		.cfi_def_cfa_offset 19
+ 663               		.cfi_offset 28, -18
+ 664 0022 DF93      		push r29
+ 665               	.LCFI49:
+ 666               		.cfi_def_cfa_offset 20
+ 667               		.cfi_offset 29, -19
+ 668               	/* prologue: function */
+ 669               	/* frame size = 0 */
+ 670               	/* stack size = 18 */
+ 671               	.L__stack_usage = 18
  265:W_M.c         ****   // int t_cheio;
  266:W_M.c         ****   // chprintf((BaseSequentialStream *)&SD1, "ENtrei na maquina");
  267:W_M.c         ****   switch(lavar){
- 620               		.loc 1 267 0
- 621 0010 8091 0000 		lds r24,lavar
- 622 0014 8230      		cpi r24,lo8(2)
- 623 0016 01F4      		brne .+2
- 624 0018 00C0      		rjmp .L22
- 625 001a 00F0      		brlo .L73
- 626 001c 8430      		cpi r24,lo8(4)
- 627 001e 01F4      		brne .+2
- 628 0020 00C0      		rjmp .L26
- 629 0022 00F4      		brsh .+2
- 630 0024 00C0      		rjmp .L27
- 631 0026 8530      		cpi r24,lo8(5)
- 632 0028 01F0      		breq .+2
- 633 002a 00C0      		rjmp .L20
- 634               	.L70:
- 635 002c 00C0      		rjmp .L70
- 636               	.L73:
- 637 002e 8823      		tst r24
- 638 0030 01F4      		brne .+2
- 639 0032 00C0      		rjmp .L24
- 640 0034 8130      		cpi r24,lo8(1)
- 641 0036 01F0      		breq .+2
- 642 0038 00C0      		rjmp .L20
+ 672               		.loc 1 267 0
+ 673 0024 8091 0000 		lds r24,lavar
+ 674 0028 8230      		cpi r24,lo8(2)
+ 675 002a 01F4      		brne .+2
+ 676 002c 00C0      		rjmp .L22
+ 677 002e 00F0      		brlo .L83
+ 678 0030 8430      		cpi r24,lo8(4)
+ 679 0032 01F4      		brne .+2
+ 680 0034 00C0      		rjmp .L26
+ 681 0036 00F4      		brsh .+2
+ 682 0038 00C0      		rjmp .L27
+ 683 003a 8530      		cpi r24,lo8(5)
+ 684 003c 01F0      		breq .+2
+ 685 003e 00C0      		rjmp .L20
+ 686               	.L81:
+ 687 0040 00C0      		rjmp .L81
+ 688               	.L83:
+ 689 0042 8823      		tst r24
+ 690 0044 01F4      		brne .+2
+ 691 0046 00C0      		rjmp .L24
+ 692 0048 8130      		cpi r24,lo8(1)
+ 693 004a 01F0      		breq .+2
+ 694 004c 00C0      		rjmp .L20
  268:W_M.c         **** 
  269:W_M.c         ****     case(PARADA):
  270:W_M.c         ****       if(lavar == EMERGENCIA){
@@ -1569,1750 +1646,1976 @@
  273:W_M.c         ****       // printf("Inicio da Parada\n");
  274:W_M.c         ****       // printf("Escolha o estado inicial:\n");
  275:W_M.c         ****       chprintf((BaseSequentialStream *)&SD1, "Selecione o estado inicial\n\r");
- 276:W_M.c         ****       // scanf("%d", &fsm_prd.select_init);
- 277:W_M.c         ****       while(1){
- 278:W_M.c         ****         if(fsm_prd.select_init == 0){
- 279:W_M.c         ****           palSetPad(IOPORT4, PARADA_ID);
- 280:W_M.c         ****           palSetPad(IOPORT2, MOLHO_ID);
- 281:W_M.c         ****           palSetPad(IOPORT2, LAVAGEM_ID);
- 282:W_M.c         ****           palSetPad(IOPORT2, ENXAGUE_ID);
- 283:W_M.c         ****           palSetPad(IOPORT2, CENTRI_ID);
- 284:W_M.c         ****           lavar = MOLHO;
- 285:W_M.c         ****           fsm_molho_init(&fsm_ml);
- 286:W_M.c         ****         }
- 287:W_M.c         **** 
- 288:W_M.c         ****         if(fsm_prd.select_init == 0 && palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH){
- 289:W_M.c         ****           // printf("Inicio MOLHO\n");
- 290:W_M.c         ****           lavar = LAVAGEM;
- 291:W_M.c         ****           fsm_lavagem_init(&fsm_lvg);
- 292:W_M.c         ****           fsm_prd.select_init = 1;
- 293:W_M.c         ****           palClearPad(IOPORT2, MOLHO_ID);
- 294:W_M.c         ****         }
- 295:W_M.c         **** 
- 296:W_M.c         ****         if(fsm_prd.select_init == 1 && palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH){
- 297:W_M.c         ****           lavar = ENXAGUE;
- 298:W_M.c         ****           fsm_enxague_init(&fsm_exg);
- 299:W_M.c         ****           fsm_prd.select_init = 2;
- 300:W_M.c         ****           palClearPad(IOPORT2, LAVAGEM_ID);
- 301:W_M.c         **** 
- 302:W_M.c         ****         }
- 303:W_M.c         ****         if(fsm_prd.select_init == 2 && palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH){
- 304:W_M.c         ****           lavar = CENTRIFUGA;
- 305:W_M.c         ****           fsm_centrifuga_init(&fsm_cen);
- 306:W_M.c         ****           fsm_prd.select_init = 3;
- 307:W_M.c         ****           palClearPad(IOPORT2, ENXAGUE_ID);
- 308:W_M.c         ****           // printf("Inicio ENXAGUE\n");
+ 276:W_M.c         ****       chprintf((BaseSequentialStream *)&SD1, "Modo inicial: Molho\n\r");
+ 277:W_M.c         ****       // scanf("%d", &fsm_prd.select_init);
+ 278:W_M.c         ****       while(1){
+ 279:W_M.c         ****         if(fsm_prd.select_init == 0){
+ 280:W_M.c         ****           palSetPad(IOPORT4, PARADA_ID);
+ 281:W_M.c         ****           palSetPad(IOPORT2, MOLHO_ID);
+ 282:W_M.c         ****           palSetPad(IOPORT2, LAVAGEM_ID);
+ 283:W_M.c         ****           palSetPad(IOPORT2, ENXAGUE_ID);
+ 284:W_M.c         ****           palSetPad(IOPORT2, CENTRI_ID);
+ 285:W_M.c         ****           lavar = MOLHO;
+ 286:W_M.c         ****           fsm_molho_init(&fsm_ml);
+ 287:W_M.c         ****         }
+ 288:W_M.c         **** 
+ 289:W_M.c         ****         if(fsm_prd.select_init == 0 && palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH){
+ 290:W_M.c         ****           chThdSleepMilliseconds(20); // Debouncing time
+ 291:W_M.c         ****           while(palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH);
+ 292:W_M.c         ****           // printf("Inicio MOLHO\n");
+ 293:W_M.c         ****           lavar = LAVAGEM;
+ 294:W_M.c         ****           fsm_lavagem_init(&fsm_lvg);
+ 295:W_M.c         ****           fsm_prd.select_init = 1;
+ 296:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Modo inicial: Lavagem \n\r");
+ 297:W_M.c         ****           palClearPad(IOPORT2, MOLHO_ID);
+ 298:W_M.c         ****         }
+ 299:W_M.c         **** 
+ 300:W_M.c         ****         if(fsm_prd.select_init == 1 && palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH){
+ 301:W_M.c         ****           chThdSleepMilliseconds(20); // Debouncing time
+ 302:W_M.c         ****           while(palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH);
+ 303:W_M.c         ****           lavar = ENXAGUE;
+ 304:W_M.c         ****           fsm_enxague_init(&fsm_exg);
+ 305:W_M.c         ****           fsm_prd.select_init = 2;
+ 306:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Modo inicial: Enxague\n\r");
+ 307:W_M.c         ****           palClearPad(IOPORT2, LAVAGEM_ID);
+ 308:W_M.c         **** 
  309:W_M.c         ****         }
- 310:W_M.c         ****         if(fsm_prd.select_init == 3 && palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH){
- 311:W_M.c         ****           fsm_prd.select_init = 0;
- 312:W_M.c         ****         }
- 313:W_M.c         ****         if(palReadPad(IOPORT4,BOT_INIT) == PAL_HIGH){
- 314:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Inicio do processo\n\r");
- 315:W_M.c         ****           return;
- 316:W_M.c         ****         }
- 317:W_M.c         ****       }// end of PARADA loop
- 318:W_M.c         **** 
- 319:W_M.c         ****     break;
- 320:W_M.c         **** 
- 321:W_M.c         **** 
- 322:W_M.c         ****     case(MOLHO):
- 323:W_M.c         ****     // printf("Inicio Molho\n");
- 324:W_M.c         ****     // chprintf((BaseSequentialStream *)&SD1, "Inicio MOLHO \n\r");
- 325:W_M.c         ****     palSetPad(IOPORT2, MOLHO_ID);
- 643               		.loc 1 325 0
- 644 003a 289A      		sbi 0x5,0
- 326:W_M.c         ****     palClearPad(IOPORT2, LAVAGEM_ID);
- 645               		.loc 1 326 0
- 646 003c 2998      		cbi 0x5,1
- 327:W_M.c         ****     palClearPad(IOPORT2, ENXAGUE_ID);
- 647               		.loc 1 327 0
- 648 003e 2A98      		cbi 0x5,2
- 328:W_M.c         ****     palClearPad(IOPORT2, CENTRI_ID);
- 649               		.loc 1 328 0
- 650 0040 2B98      		cbi 0x5,3
- 329:W_M.c         ****     palClearPad(IOPORT4, PARADA_ID);
- 651               		.loc 1 329 0
- 652 0042 5F98      		cbi 0xb,7
- 330:W_M.c         **** 
- 331:W_M.c         ****       switch(fsm_ml.ml){
- 653               		.loc 1 331 0
- 654 0044 8091 0000 		lds r24,fsm_ml
- 655 0048 8630      		cpi r24,lo8(6)
- 656 004a 01F4      		brne .+2
- 657 004c 00C0      		rjmp .L40
- 658 004e 8730      		cpi r24,lo8(7)
- 659 0050 01F0      		breq .+2
- 660 0052 00C0      		rjmp .L20
- 332:W_M.c         ****         case(ENCHER_ML):
- 333:W_M.c         ****           if(lavar == EMERGENCIA){
- 334:W_M.c         ****             break;
- 335:W_M.c         ****           } // verifcar emergência
- 336:W_M.c         ****           // printf("DEBUG: Super MOLHO - estado ENCHER_ML\n");
- 337:W_M.c         ****           // printf("Abrir água\n");
- 338:W_M.c         ****           palSetPad(IOPORT2, ENCHE_ID);
- 339:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Enchendo... \n\r");
- 340:W_M.c         ****           if(palReadPad(IOPORT4, SEN_CHEIO) == PAL_HIGH){
- 341:W_M.c         ****             // printf("Sensor Cheio\n");
- 342:W_M.c         ****             chprintf((BaseSequentialStream *)&SD1, "Sensor cheio\n\r");
- 343:W_M.c         ****             palClearPad(IOPORT2, ENCHE_ID);
- 344:W_M.c         ****             fsm_ml.ml = RODAR_ML;
- 345:W_M.c         ****             // printf("Início Giros Molho\n");
- 346:W_M.c         ****           }
- 347:W_M.c         ****           break;
- 348:W_M.c         **** 
- 349:W_M.c         ****         case(RODAR_ML):
- 350:W_M.c         ****           if(lavar == EMERGENCIA){
- 351:W_M.c         ****             break;
- 352:W_M.c         ****           } // verifcar emergência
- 353:W_M.c         ****           // printf("DEBUG: Super MOLHO - estado RODAR_ML\n");
- 354:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Giros Molho\n\r");
- 661               		.loc 1 354 0
- 662 0054 80E0      		ldi r24,lo8(.LC9)
- 663 0056 90E0      		ldi r25,hi8(.LC9)
- 664 0058 9F93      		push r25
- 665               	.LCFI40:
- 666               		.cfi_def_cfa_offset 11
- 667 005a 8F93      		push r24
- 668               	.LCFI41:
- 669               		.cfi_def_cfa_offset 12
- 670 005c C0E0      		ldi r28,lo8(SD1)
- 671 005e D0E0      		ldi r29,hi8(SD1)
- 672 0060 DF93      		push r29
- 673               	.LCFI42:
- 674               		.cfi_def_cfa_offset 13
- 675 0062 CF93      		push r28
- 676               	.LCFI43:
- 677               		.cfi_def_cfa_offset 14
- 678 0064 0E94 0000 		call chprintf
- 355:W_M.c         ****           spinning(fsm_ml.t_giro);
- 679               		.loc 1 355 0
- 680 0068 8091 0000 		lds r24,fsm_ml+1
- 681 006c 9091 0000 		lds r25,fsm_ml+1+1
- 682 0070 0E94 0000 		call spinning
- 356:W_M.c         ****           lavar = LAVAGEM;
- 683               		.loc 1 356 0
- 684 0074 82E0      		ldi r24,lo8(2)
- 685 0076 8093 0000 		sts lavar,r24
- 686               	.LBB196:
- 687               	.LBB197:
- 129:W_M.c         ****   st->turns = 0;
- 688               		.loc 1 129 0
- 689 007a 88E0      		ldi r24,lo8(8)
- 690 007c 8093 0000 		sts fsm_lvg,r24
- 130:W_M.c         ****   st->t_espera = 2000;
- 691               		.loc 1 130 0
- 692 0080 1092 0000 		sts fsm_lvg+5+1,__zero_reg__
- 693 0084 1092 0000 		sts fsm_lvg+5,__zero_reg__
- 131:W_M.c         ****   st->t_giros = 4000;
- 694               		.loc 1 131 0
- 695 0088 80ED      		ldi r24,lo8(-48)
- 696 008a 97E0      		ldi r25,lo8(7)
- 697 008c 9093 0000 		sts fsm_lvg+7+1,r25
- 698 0090 8093 0000 		sts fsm_lvg+7,r24
- 132:W_M.c         ****   st->instante = chVTGetSystemTime();
- 699               		.loc 1 132 0
- 700 0094 80EA      		ldi r24,lo8(-96)
- 701 0096 9FE0      		ldi r25,lo8(15)
- 702 0098 9093 0000 		sts fsm_lvg+9+1,r25
- 703 009c 8093 0000 		sts fsm_lvg+9,r24
- 704               	.LBB198:
- 705               	.LBB199:
- 706               	.LBB200:
- 707               	.LBB201:
- 708               	.LBB202:
- 437:../../../os/common/ports/AVR/chcore.h **** }
- 709               		.loc 2 437 0
- 710               	/* #APP */
- 711               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
- 712 00a0 F894      		cli
- 713               	 ;  0 "" 2
- 714               	/* #NOAPP */
- 715               	.LBE202:
- 716               	.LBE201:
- 717               	.LBE200:
- 718               	.LBB203:
- 719               	.LBB204:
- 720               		.loc 3 118 0
- 721 00a2 8091 0000 		lds r24,ch+19
- 722 00a6 9091 0000 		lds r25,ch+19+1
- 723               	.LBE204:
- 724               	.LBE203:
- 725               	.LBB205:
- 726               	.LBB206:
- 727               	.LBB207:
- 728               	.LBB208:
- 729               		.loc 2 447 0
- 730               	/* #APP */
- 731               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
- 732 00aa 7894      		sei
- 733               	 ;  0 "" 2
- 734               	/* #NOAPP */
- 735               	.LBE208:
- 736               	.LBE207:
- 737               	.LBE206:
- 738               	.LBE205:
- 739               	.LBE199:
- 740               	.LBE198:
- 133:W_M.c         ****   st->ul_espera = st->instante;
- 741               		.loc 1 133 0
- 742 00ac 9093 0000 		sts fsm_lvg+1+1,r25
- 743 00b0 8093 0000 		sts fsm_lvg+1,r24
- 134:W_M.c         **** }
- 744               		.loc 1 134 0
- 745 00b4 9093 0000 		sts fsm_lvg+3+1,r25
- 746 00b8 8093 0000 		sts fsm_lvg+3,r24
- 747               	.LBE197:
- 748               	.LBE196:
- 357:W_M.c         ****           fsm_lavagem_init(&fsm_lvg);
- 358:W_M.c         ****           // printf("Fim Molho\n");
- 359:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "FIM Molho\n\r");
- 749               		.loc 1 359 0
- 750 00bc 80E0      		ldi r24,lo8(.LC10)
- 751 00be 90E0      		ldi r25,hi8(.LC10)
- 752 00c0 9F93      		push r25
- 753               	.LCFI44:
- 754               		.cfi_def_cfa_offset 15
- 755 00c2 8F93      		push r24
- 756               	.LCFI45:
- 757               		.cfi_def_cfa_offset 16
- 758 00c4 DF93      		push r29
- 759               	.LCFI46:
- 760               		.cfi_def_cfa_offset 17
- 761 00c6 CF93      		push r28
- 762               	.LCFI47:
- 763               		.cfi_def_cfa_offset 18
- 764 00c8 0E94 0000 		call chprintf
- 360:W_M.c         ****           palClearPad(IOPORT2, MOLHO_ID);
- 765               		.loc 1 360 0
- 766 00cc 2898      		cbi 0x5,0
- 361:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, ("Inicio LAVAGEM\n\r"));
- 767               		.loc 1 361 0
- 768 00ce 80E0      		ldi r24,lo8(.LC11)
- 769 00d0 90E0      		ldi r25,hi8(.LC11)
- 770 00d2 9F93      		push r25
- 771               	.LCFI48:
- 772               		.cfi_def_cfa_offset 19
- 773 00d4 8F93      		push r24
- 774               	.LCFI49:
- 775               		.cfi_def_cfa_offset 20
- 776 00d6 DF93      		push r29
- 777               	.LCFI50:
- 778               		.cfi_def_cfa_offset 21
- 779 00d8 CF93      		push r28
- 780               	.LCFI51:
- 781               		.cfi_def_cfa_offset 22
- 782 00da 0E94 0000 		call chprintf
- 362:W_M.c         ****           // printf("Inicio LAVAGEM\n");
- 363:W_M.c         ****           break;
- 783               		.loc 1 363 0
- 784 00de 8DB7      		in r24,__SP_L__
- 785 00e0 9EB7      		in r25,__SP_H__
- 786 00e2 0C96      		adiw r24,12
- 787 00e4 0FB6      		in __tmp_reg__,__SREG__
- 788 00e6 F894      		cli
- 789 00e8 9EBF      		out __SP_H__,r25
- 790 00ea 0FBE      		out __SREG__,__tmp_reg__
- 791 00ec 8DBF      		out __SP_L__,r24
- 792               	.LCFI52:
- 793               		.cfi_def_cfa_offset 10
- 794               	.L20:
- 795               	/* epilogue start */
- 364:W_M.c         ****       }
- 365:W_M.c         ****       break;
- 366:W_M.c         **** 
+ 310:W_M.c         ****         if(fsm_prd.select_init == 2 && palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH){
+ 311:W_M.c         ****           chThdSleepMilliseconds(20); // Debouncing time
+ 312:W_M.c         ****           while(palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH);
+ 313:W_M.c         ****           lavar = CENTRIFUGA;
+ 314:W_M.c         ****           fsm_centrifuga_init(&fsm_cen);
+ 315:W_M.c         ****           fsm_prd.select_init = 3;
+ 316:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Modo inicial: Centrifuga\n\r");
+ 317:W_M.c         ****           palClearPad(IOPORT2, ENXAGUE_ID);
+ 318:W_M.c         ****           // printf("Inicio ENXAGUE\n");
+ 319:W_M.c         ****         }
+ 320:W_M.c         ****         if(fsm_prd.select_init == 3 && palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH){
+ 321:W_M.c         ****           chThdSleepMilliseconds(20); // Debouncing time
+ 322:W_M.c         ****           while(palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH);
+ 323:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Modo inicial: Molho\n\r");
+ 324:W_M.c         ****           fsm_prd.select_init = 0;
+ 325:W_M.c         ****         }
+ 326:W_M.c         ****         if(palReadPad(IOPORT4,BOT_INIT) == PAL_HIGH){
+ 327:W_M.c         ****           chThdSleepMilliseconds(20); // Debouncing time
+ 328:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Inicio do processo\n\r");
+ 329:W_M.c         ****           if(fsm_prd.select_init == 0){
+ 330:W_M.c         ****             chprintf((BaseSequentialStream *)&SD1, "Enchendo para o Molho \n\r");
+ 331:W_M.c         ****           }
+ 332:W_M.c         ****           if(fsm_prd.select_init == 2){
+ 333:W_M.c         ****             chprintf((BaseSequentialStream *)&SD1, "Enchendo para o enxague\n\r");
+ 334:W_M.c         ****           }
+ 335:W_M.c         ****           return;
+ 336:W_M.c         ****         }
+ 337:W_M.c         ****       }// end of PARADA loop
+ 338:W_M.c         **** 
+ 339:W_M.c         ****     break;
+ 340:W_M.c         **** 
+ 341:W_M.c         **** 
+ 342:W_M.c         ****     case(MOLHO):
+ 343:W_M.c         ****     // printf("Inicio Molho\n");
+ 344:W_M.c         ****     // chprintf((BaseSequentialStream *)&SD1, "Inicio MOLHO \n\r");
+ 345:W_M.c         ****     palSetPad(IOPORT2, MOLHO_ID);
+ 695               		.loc 1 345 0
+ 696 004e 289A      		sbi 0x5,0
+ 346:W_M.c         ****     palClearPad(IOPORT2, LAVAGEM_ID);
+ 697               		.loc 1 346 0
+ 698 0050 2998      		cbi 0x5,1
+ 347:W_M.c         ****     palClearPad(IOPORT2, ENXAGUE_ID);
+ 699               		.loc 1 347 0
+ 700 0052 2A98      		cbi 0x5,2
+ 348:W_M.c         ****     palClearPad(IOPORT2, CENTRI_ID);
+ 701               		.loc 1 348 0
+ 702 0054 2B98      		cbi 0x5,3
+ 349:W_M.c         ****     palClearPad(IOPORT4, PARADA_ID);
+ 703               		.loc 1 349 0
+ 704 0056 5F98      		cbi 0xb,7
+ 350:W_M.c         **** 
+ 351:W_M.c         ****       switch(fsm_ml.ml){
+ 705               		.loc 1 351 0
+ 706 0058 8091 0000 		lds r24,fsm_ml
+ 707 005c 8630      		cpi r24,lo8(6)
+ 708 005e 01F4      		brne .+2
+ 709 0060 00C0      		rjmp .L42
+ 710 0062 8730      		cpi r24,lo8(7)
+ 711 0064 01F0      		breq .+2
+ 712 0066 00C0      		rjmp .L20
+ 352:W_M.c         ****         case(ENCHER_ML):
+ 353:W_M.c         ****           if(lavar == EMERGENCIA){
+ 354:W_M.c         ****             break;
+ 355:W_M.c         ****           } // verifcar emergência
+ 356:W_M.c         ****           // printf("DEBUG: Super MOLHO - estado ENCHER_ML\n");
+ 357:W_M.c         ****           // printf("Abrir água\n");
+ 358:W_M.c         ****           palSetPad(IOPORT2, ENCHE_ID);
+ 359:W_M.c         ****           if(palReadPad(IOPORT4, SEN_CHEIO) == PAL_HIGH){
+ 360:W_M.c         ****             // printf("Sensor Cheio\n");
+ 361:W_M.c         ****             chprintf((BaseSequentialStream *)&SD1, "Sensor cheio\n\r");
+ 362:W_M.c         ****             palClearPad(IOPORT2, ENCHE_ID);
+ 363:W_M.c         ****             fsm_ml.ml = RODAR_ML;
+ 364:W_M.c         ****             // printf("Início Giros Molho\n");
+ 365:W_M.c         ****           }
+ 366:W_M.c         ****           break;
  367:W_M.c         **** 
- 368:W_M.c         ****     case(LAVAGEM):
- 369:W_M.c         ****       // printf("Inicio Lavagem\n");
- 370:W_M.c         ****       palClearPad(IOPORT2, MOLHO_ID);
- 371:W_M.c         ****       palSetPad(IOPORT2, LAVAGEM_ID);
- 372:W_M.c         ****       palClearPad(IOPORT2, ENXAGUE_ID);
- 373:W_M.c         ****       palClearPad(IOPORT2, CENTRI_ID);
- 374:W_M.c         ****       palClearPad(IOPORT4, PARADA_ID);
- 375:W_M.c         **** 
- 376:W_M.c         ****       switch(fsm_lvg.lvg){
- 377:W_M.c         ****         case(RODAR_LVG):
- 378:W_M.c         ****           if(lavar == EMERGENCIA){
- 379:W_M.c         ****             break;
- 380:W_M.c         ****           } // verifcar emergência
- 381:W_M.c         ****           // printf("DEBUG Super LAVAGEM - estado RODAR_LVG\n");
- 382:W_M.c         ****           // printf("Inicio giros Lavagem\n");
- 383:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Giros Lavagem\n\r");
- 384:W_M.c         ****           spinning(fsm_lvg.t_giros);
- 385:W_M.c         ****           fsm_lvg.ul_espera = chVTGetSystemTime();
- 386:W_M.c         ****           fsm_lvg.lvg = ESPERA_LVG;
- 387:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Espera Lavagem\n\r");
- 388:W_M.c         ****           // printf("DEBUG: Super LAVAGEM - estado ESPERA\n");
- 389:W_M.c         **** 
- 390:W_M.c         ****           break;
- 391:W_M.c         **** 
- 392:W_M.c         ****         case(ESPERA_LVG):
- 393:W_M.c         ****           if(lavar == EMERGENCIA){
- 394:W_M.c         ****             break;
- 395:W_M.c         ****           } // verifcar emergência
- 396:W_M.c         ****           fsm_lvg.instante = chVTGetSystemTime();
- 397:W_M.c         ****           if(fsm_lvg.instante - fsm_lvg.ul_espera > TIME_MS2I(fsm_lvg.t_espera)){
- 398:W_M.c         ****             fsm_lvg.ul_espera = chVTGetSystemTime();
- 399:W_M.c         ****             if(fsm_lvg.turns >= 3){
- 400:W_M.c         ****               fsm_lvg.turns = 0;
- 401:W_M.c         ****               fsm_lvg.lvg = ESVAZIA_LVG;
- 402:W_M.c         ****               chprintf((BaseSequentialStream *)&SD1, "Esvazia Lavagem \n\r");
- 403:W_M.c         ****               // printf("Fim giros Lavagem\n");
- 404:W_M.c         **** 
- 405:W_M.c         ****             } else {
- 406:W_M.c         ****               fsm_lvg.turns ++;
- 407:W_M.c         ****               fsm_lvg.lvg = RODAR_LVG;
- 408:W_M.c         ****             } // fim if voltas
- 409:W_M.c         ****           } // fim if tempo
- 410:W_M.c         ****           break;
- 411:W_M.c         **** 
- 412:W_M.c         **** 
- 413:W_M.c         ****         case(ESVAZIA_LVG):
- 414:W_M.c         ****           if(lavar == EMERGENCIA){
- 415:W_M.c         ****             break;
- 416:W_M.c         ****           } // verificar emergência
- 417:W_M.c         ****           palSetPad(IOPORT2, SECA_ID);
- 418:W_M.c         ****           // printf("DEBUG: Super LAVAGEM - estado ESVAZIA_LVG\n");
- 419:W_M.c         ****           if(palReadPad(IOPORT4, SEN_VAZIO) == PAL_HIGH){
- 420:W_M.c         ****             // printf("Sensor Vazio: ON\n");
- 421:W_M.c         ****             palClearPad(IOPORT2, SECA_ID);
- 422:W_M.c         ****             // printf("Fim LAVAGEM\n");
- 423:W_M.c         ****             chprintf((BaseSequentialStream *)&SD1, "Fim Lavagem\n\r");
- 424:W_M.c         ****             palClearPad(IOPORT2, LAVAGEM_ID);
- 425:W_M.c         **** 
- 426:W_M.c         ****             // printf("Inicio ENXAGUE\n");
- 427:W_M.c         ****             chprintf((BaseSequentialStream *)&SD1, "Inicio Enxague\n\r");
- 428:W_M.c         ****               lavar = ENXAGUE;
- 429:W_M.c         **** 
- 430:W_M.c         ****               fsm_enxague_init(&fsm_exg);
- 431:W_M.c         ****             } // fim "if" sensor vazio
- 432:W_M.c         ****             break;
- 433:W_M.c         ****           } // fim switch LAVAGEM
- 434:W_M.c         ****           break;
- 435:W_M.c         **** 
- 436:W_M.c         **** 
- 437:W_M.c         ****     case(ENXAGUE):
- 438:W_M.c         ****     palClearPad(IOPORT2, MOLHO_ID);
- 439:W_M.c         ****     palClearPad(IOPORT2, LAVAGEM_ID);
- 440:W_M.c         ****     palSetPad(IOPORT2, ENXAGUE_ID);
- 441:W_M.c         ****     palClearPad(IOPORT2, CENTRI_ID);
- 442:W_M.c         ****     palClearPad(IOPORT4, PARADA_ID);
- 443:W_M.c         **** 
- 444:W_M.c         ****       switch(fsm_exg.exg){
- 445:W_M.c         ****         case(ENCHER_EXG):
- 446:W_M.c         ****           if(lavar == EMERGENCIA){
- 447:W_M.c         ****             break;
- 448:W_M.c         ****           } // verificar emergência
- 449:W_M.c         ****           // printf("DEBUG: Super ENXAGUE - estado ENCHER_EXG\n");
- 450:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Enche Enxague\n\r");
- 451:W_M.c         ****           palSetPad(IOPORT2, ENCHE_ID);
- 452:W_M.c         ****           if(palReadPad(IOPORT4, SEN_CHEIO) == PAL_HIGH){
- 453:W_M.c         ****             // printf("Sensor Cheio: ON\n");
- 454:W_M.c         ****             palClearPad(IOPORT2, ENCHE_ID);
- 455:W_M.c         ****             fsm_exg.exg = RODAR_EXG;
- 456:W_M.c         **** 
- 457:W_M.c         ****           } // fim "if" Sensor cheio
- 458:W_M.c         ****           break;
- 459:W_M.c         **** 
- 460:W_M.c         ****         case(RODAR_EXG):
- 461:W_M.c         ****           if(lavar == EMERGENCIA){
- 462:W_M.c         ****             break;
- 463:W_M.c         ****           } // verificar emergência
- 464:W_M.c         ****           // printf("DEBUG: Super ENXAGUE - estado RODAR_EXG\n");
- 465:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Rodar Enxague\n\r");
- 466:W_M.c         ****           spinning(fsm_exg.t_giro);
- 467:W_M.c         ****           fsm_exg.exg = ESVAZIA_EXG;
- 468:W_M.c         **** 
- 469:W_M.c         ****         break;
- 470:W_M.c         **** 
- 471:W_M.c         ****         case(ESVAZIA_EXG):
- 472:W_M.c         ****           if(lavar == EMERGENCIA){
- 473:W_M.c         ****             break;
- 474:W_M.c         ****           } //  verificar a emergência
- 475:W_M.c         **** 
- 476:W_M.c         ****           // printf("DEBUG: Super ENXAGUE - estados ESVAZIA_EXG\n");
- 477:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Esvazia Enxague\n\r");
- 478:W_M.c         ****           palSetPad(IOPORT2, SECA_ID);
- 479:W_M.c         ****           if(palReadPad(IOPORT4, SEN_VAZIO) == PAL_HIGH){
- 480:W_M.c         ****              // printf("Sensor Vazio: ON\n");
- 481:W_M.c         ****              palClearPad(IOPORT2, SECA_ID);
- 482:W_M.c         ****              lavar = CENTRIFUGA;
- 483:W_M.c         ****              fsm_centrifuga_init(&fsm_cen);
- 484:W_M.c         ****              chprintf((BaseSequentialStream *)&SD1, "Fim Enxague\n\r");
- 485:W_M.c         ****              // printf("Fim Enxágue\n");
- 486:W_M.c         ****              palClearPad(IOPORT2, ENXAGUE_ID);
- 487:W_M.c         ****              // printf("Inicio CENTRIFUGA\n");
- 488:W_M.c         ****              chprintf((BaseSequentialStream *)&SD1, "Inicio Centrifuga\n\r");
- 489:W_M.c         ****           }// fim "if" sensor vazio
- 490:W_M.c         ****         break;
- 491:W_M.c         ****       } // fim switch ENXAGUE
- 492:W_M.c         ****       break;
- 493:W_M.c         **** 
- 494:W_M.c         **** 
- 495:W_M.c         ****       case(CENTRIFUGA):
- 496:W_M.c         ****       // printf("Inicio Centrifuga\n");
- 497:W_M.c         ****       palClearPad(IOPORT2, MOLHO_ID);
- 498:W_M.c         ****       palClearPad(IOPORT2, LAVAGEM_ID);
- 499:W_M.c         ****       palClearPad(IOPORT2, ENXAGUE_ID);
- 500:W_M.c         ****       palSetPad(IOPORT2, CENTRI_ID);
- 501:W_M.c         ****       palClearPad(IOPORT4, PARADA_ID);
- 502:W_M.c         **** 
- 503:W_M.c         ****         switch(fsm_cen.cen){
- 504:W_M.c         ****           case(GIRA_R_CENTRI):
- 505:W_M.c         ****             if(lavar == EMERGENCIA){
- 506:W_M.c         ****               break;
- 507:W_M.c         ****             }
- 508:W_M.c         ****             palClearPad(IOPORT3, MOTOR_DIR);
- 509:W_M.c         ****             // printf("DEBUG: Super CENTRIFUGA - estado GIRA_R_CENTRI\n");
- 510:W_M.c         ****             fsm_cen.tempo = chVTGetSystemTime();
- 511:W_M.c         ****             // printf("Super:%d - estado:%d\n ",lavar, fsm_cen.cen);
- 512:W_M.c         ****             // printf("CENTRIFUGA: %ld - %ld\n", fsm_cen.instante, fsm_cen.ul_espera);
- 513:W_M.c         ****             if(fsm_cen.tempo - fsm_cen.ul_centri > TIME_MS2I(fsm_cen.t_centri)){
- 514:W_M.c         ****               palSetPad(IOPORT3, MOTOR_DIR);
- 515:W_M.c         ****               lavar = PARADA;
- 516:W_M.c         ****               fsm_parada_init(&fsm_prd);
- 517:W_M.c         ****               palClearPad(IOPORT2, CENTRI_ID);
- 518:W_M.c         ****               // printf("FIM DA Máquina\n");
- 519:W_M.c         ****             }
- 520:W_M.c         ****           break; // break de GIRA_R_CENTRI
- 521:W_M.c         ****         } // fim switch CENTRIFUGA
- 522:W_M.c         ****     break; // break de centrífuga.
- 523:W_M.c         **** 
- 524:W_M.c         **** 
- 525:W_M.c         ****     case(EMERGENCIA):
- 526:W_M.c         ****       // printf("PORTA ABERTA. ERRO !!\n");
- 527:W_M.c         ****       while(1);
- 528:W_M.c         **** 
- 529:W_M.c         ****     break; // break de emergência
- 530:W_M.c         ****   } // fim switch máquina principal
- 531:W_M.c         **** } // fim função da máquina principal.
- 796               		.loc 1 531 0
- 797 00ee DF91      		pop r29
- 798 00f0 CF91      		pop r28
- 799 00f2 1F91      		pop r17
- 800 00f4 0F91      		pop r16
- 801 00f6 FF90      		pop r15
- 802 00f8 EF90      		pop r14
- 803 00fa DF90      		pop r13
- 804 00fc CF90      		pop r12
- 805 00fe 0895      		ret
- 806               	.L26:
- 497:W_M.c         ****       palClearPad(IOPORT2, LAVAGEM_ID);
- 807               		.loc 1 497 0
- 808 0100 2898      		cbi 0x5,0
- 498:W_M.c         ****       palClearPad(IOPORT2, ENXAGUE_ID);
- 809               		.loc 1 498 0
- 810 0102 2998      		cbi 0x5,1
- 499:W_M.c         ****       palSetPad(IOPORT2, CENTRI_ID);
- 811               		.loc 1 499 0
- 812 0104 2A98      		cbi 0x5,2
- 500:W_M.c         ****       palClearPad(IOPORT4, PARADA_ID);
- 813               		.loc 1 500 0
- 814 0106 2B9A      		sbi 0x5,3
- 501:W_M.c         **** 
- 815               		.loc 1 501 0
- 816 0108 5F98      		cbi 0xb,7
- 503:W_M.c         ****           case(GIRA_R_CENTRI):
- 817               		.loc 1 503 0
- 818 010a 8091 0000 		lds r24,fsm_cen
- 819 010e 8E30      		cpi r24,lo8(14)
- 820 0110 01F4      		brne .L20
- 508:W_M.c         ****             // printf("DEBUG: Super CENTRIFUGA - estado GIRA_R_CENTRI\n");
- 821               		.loc 1 508 0
- 822 0112 4098      		cbi 0x8,0
- 823               	.LBB209:
- 824               	.LBB210:
- 825               	.LBB211:
- 826               	.LBB212:
- 827               	.LBB213:
- 437:../../../os/common/ports/AVR/chcore.h **** }
- 828               		.loc 2 437 0
- 829               	/* #APP */
- 830               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
- 831 0114 F894      		cli
- 832               	 ;  0 "" 2
- 833               	/* #NOAPP */
- 834               	.LBE213:
- 835               	.LBE212:
- 836               	.LBE211:
- 837               	.LBB214:
- 838               	.LBB215:
- 839               		.loc 3 118 0
- 840 0116 8091 0000 		lds r24,ch+19
- 841 011a 9091 0000 		lds r25,ch+19+1
- 842               	.LBE215:
- 843               	.LBE214:
- 844               	.LBB216:
- 845               	.LBB217:
- 846               	.LBB218:
- 847               	.LBB219:
- 848               		.loc 2 447 0
- 849               	/* #APP */
- 850               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
- 851 011e 7894      		sei
- 852               	 ;  0 "" 2
- 853               	/* #NOAPP */
- 854               	.LBE219:
- 855               	.LBE218:
- 856               	.LBE217:
- 857               	.LBE216:
- 858               	.LBE210:
- 859               	.LBE209:
- 510:W_M.c         ****             // printf("Super:%d - estado:%d\n ",lavar, fsm_cen.cen);
- 860               		.loc 1 510 0
- 861 0120 9093 0000 		sts fsm_cen+1+1,r25
- 862 0124 8093 0000 		sts fsm_cen+1,r24
- 513:W_M.c         ****               palSetPad(IOPORT3, MOTOR_DIR);
- 863               		.loc 1 513 0
- 864 0128 A091 0000 		lds r26,fsm_cen+5
- 865 012c B091 0000 		lds r27,fsm_cen+5+1
- 866 0130 2091 0000 		lds r18,fsm_cen+3
- 867 0134 3091 0000 		lds r19,fsm_cen+3+1
- 868 0138 EC01      		movw r28,r24
- 869 013a C21B      		sub r28,r18
- 870 013c D30B      		sbc r29,r19
- 871 013e 28E0      		ldi r18,lo8(8)
- 872 0140 3DE3      		ldi r19,lo8(61)
- 873 0142 0E94 0000 		call __usmulhisi3
- 874 0146 6951      		subi r22,25
- 875 0148 7C4F      		sbci r23,-4
- 876 014a 8F4F      		sbci r24,-1
- 877 014c 9F4F      		sbci r25,-1
- 878 014e 28EE      		ldi r18,lo8(-24)
- 879 0150 33E0      		ldi r19,lo8(3)
- 880 0152 40E0      		ldi r20,0
- 881 0154 50E0      		ldi r21,0
- 882 0156 0E94 0000 		call __udivmodsi4
- 883 015a 2C17      		cp r18,r28
- 884 015c 3D07      		cpc r19,r29
- 885 015e 00F4      		brsh .L20
- 514:W_M.c         ****               lavar = PARADA;
- 886               		.loc 1 514 0
- 887 0160 409A      		sbi 0x8,0
- 515:W_M.c         ****               fsm_parada_init(&fsm_prd);
- 888               		.loc 1 515 0
- 889 0162 1092 0000 		sts lavar,__zero_reg__
- 890               	.LBB220:
- 891               	.LBB221:
- 118:W_M.c         **** }
- 892               		.loc 1 118 0
- 893 0166 1092 0000 		sts fsm_prd+1,__zero_reg__
- 894 016a 1092 0000 		sts fsm_prd,__zero_reg__
- 895               	.LBE221:
- 896               	.LBE220:
- 517:W_M.c         ****               // printf("FIM DA Máquina\n");
- 897               		.loc 1 517 0
- 898 016e 2B98      		cbi 0x5,3
- 899 0170 00C0      		rjmp .L20
- 900               	.L24:
- 275:W_M.c         ****       // scanf("%d", &fsm_prd.select_init);
- 901               		.loc 1 275 0
- 902 0172 80E0      		ldi r24,lo8(.LC5)
- 903 0174 90E0      		ldi r25,hi8(.LC5)
- 904 0176 9F93      		push r25
- 905               	.LCFI53:
- 906               		.cfi_def_cfa_offset 11
- 907 0178 8F93      		push r24
- 908               	.LCFI54:
- 909               		.cfi_def_cfa_offset 12
- 910 017a 80E0      		ldi r24,lo8(SD1)
- 911 017c 90E0      		ldi r25,hi8(SD1)
- 912 017e 9F93      		push r25
- 913               	.LCFI55:
- 914               		.cfi_def_cfa_offset 13
- 915 0180 8F93      		push r24
- 916               	.LCFI56:
- 917               		.cfi_def_cfa_offset 14
- 918 0182 0E94 0000 		call chprintf
- 919 0186 0F90      		pop __tmp_reg__
- 920 0188 0F90      		pop __tmp_reg__
- 921 018a 0F90      		pop __tmp_reg__
- 922 018c 0F90      		pop __tmp_reg__
- 923               	.LCFI57:
- 924               		.cfi_def_cfa_offset 10
- 304:W_M.c         ****           fsm_centrifuga_init(&fsm_cen);
- 925               		.loc 1 304 0
- 926 018e 84E0      		ldi r24,lo8(4)
- 927 0190 C82E      		mov r12,r24
- 928               	.LBB222:
- 929               	.LBB223:
- 145:W_M.c         ****   st->tempo = chVTGetSystemTime();
- 930               		.loc 1 145 0
- 931 0192 9EE0      		ldi r25,lo8(14)
- 932 0194 D92E      		mov r13,r25
- 148:W_M.c         **** }
- 933               		.loc 1 148 0
- 934 0196 20EA      		ldi r18,lo8(-96)
- 935 0198 3FE0      		ldi r19,lo8(15)
- 936               	.LBE223:
- 937               	.LBE222:
- 306:W_M.c         ****           palClearPad(IOPORT2, ENXAGUE_ID);
- 938               		.loc 1 306 0
- 939 019a 03E0      		ldi r16,lo8(3)
- 940 019c 10E0      		ldi r17,0
- 297:W_M.c         ****           fsm_enxague_init(&fsm_exg);
- 941               		.loc 1 297 0
- 942 019e 43E0      		ldi r20,lo8(3)
- 943 01a0 E42E      		mov r14,r20
- 944               	.LBB236:
- 945               	.LBB237:
- 139:W_M.c         ****   st->t_giro = 4000;
- 946               		.loc 1 139 0
- 947 01a2 5BE0      		ldi r21,lo8(11)
- 948 01a4 F52E      		mov r15,r21
- 949               	.LBE237:
- 950               	.LBE236:
- 299:W_M.c         ****           palClearPad(IOPORT2, LAVAGEM_ID);
- 951               		.loc 1 299 0
- 952 01a6 C2E0      		ldi r28,lo8(2)
- 953 01a8 D0E0      		ldi r29,0
- 284:W_M.c         ****           fsm_molho_init(&fsm_ml);
- 954               		.loc 1 284 0
- 955 01aa B1E0      		ldi r27,lo8(1)
- 956               	.LBB239:
- 957               	.LBB240:
- 123:W_M.c         ****   st->t_giro = 4000;
- 958               		.loc 1 123 0
- 959 01ac A6E0      		ldi r26,lo8(6)
- 960               	.LBE240:
- 961               	.LBE239:
- 290:W_M.c         ****           fsm_lavagem_init(&fsm_lvg);
- 962               		.loc 1 290 0
- 963 01ae F2E0      		ldi r31,lo8(2)
- 964               	.LBB242:
- 965               	.LBB243:
+ 368:W_M.c         ****         case(RODAR_ML):
+ 369:W_M.c         ****           if(lavar == EMERGENCIA){
+ 370:W_M.c         ****             break;
+ 371:W_M.c         ****           } // verifcar emergência
+ 372:W_M.c         ****           // printf("DEBUG: Super MOLHO - estado RODAR_ML\n");
+ 373:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Giros Molho\n\r");
+ 713               		.loc 1 373 0
+ 714 0068 80E0      		ldi r24,lo8(.LC14)
+ 715 006a 90E0      		ldi r25,hi8(.LC14)
+ 716 006c 9F93      		push r25
+ 717               	.LCFI50:
+ 718               		.cfi_def_cfa_offset 21
+ 719 006e 8F93      		push r24
+ 720               	.LCFI51:
+ 721               		.cfi_def_cfa_offset 22
+ 722 0070 C0E0      		ldi r28,lo8(SD1)
+ 723 0072 D0E0      		ldi r29,hi8(SD1)
+ 724 0074 DF93      		push r29
+ 725               	.LCFI52:
+ 726               		.cfi_def_cfa_offset 23
+ 727 0076 CF93      		push r28
+ 728               	.LCFI53:
+ 729               		.cfi_def_cfa_offset 24
+ 730 0078 0E94 0000 		call chprintf
+ 374:W_M.c         ****           spinning(fsm_ml.t_giro);
+ 731               		.loc 1 374 0
+ 732 007c 8091 0000 		lds r24,fsm_ml+1
+ 733 0080 9091 0000 		lds r25,fsm_ml+1+1
+ 734 0084 0E94 0000 		call spinning
+ 375:W_M.c         ****           lavar = LAVAGEM;
+ 735               		.loc 1 375 0
+ 736 0088 82E0      		ldi r24,lo8(2)
+ 737 008a 8093 0000 		sts lavar,r24
+ 738               	.LBB196:
+ 739               	.LBB197:
  129:W_M.c         ****   st->turns = 0;
- 966               		.loc 1 129 0
- 967 01b0 E8E0      		ldi r30,lo8(8)
- 131:W_M.c         ****   st->t_giros = 4000;
- 968               		.loc 1 131 0
- 969 01b2 60ED      		ldi r22,lo8(-48)
- 970 01b4 77E0      		ldi r23,lo8(7)
- 971               	.LBE243:
- 972               	.LBE242:
- 292:W_M.c         ****           palClearPad(IOPORT2, MOLHO_ID);
- 973               		.loc 1 292 0
- 974 01b6 41E0      		ldi r20,lo8(1)
- 975 01b8 50E0      		ldi r21,0
- 976 01ba 00C0      		rjmp .L39
- 977               	.L75:
- 279:W_M.c         ****           palSetPad(IOPORT2, MOLHO_ID);
- 978               		.loc 1 279 0
- 979 01bc 5F9A      		sbi 0xb,7
- 280:W_M.c         ****           palSetPad(IOPORT2, LAVAGEM_ID);
- 980               		.loc 1 280 0
- 981 01be 289A      		sbi 0x5,0
- 281:W_M.c         ****           palSetPad(IOPORT2, ENXAGUE_ID);
- 982               		.loc 1 281 0
- 983 01c0 299A      		sbi 0x5,1
- 282:W_M.c         ****           palSetPad(IOPORT2, CENTRI_ID);
- 984               		.loc 1 282 0
- 985 01c2 2A9A      		sbi 0x5,2
- 283:W_M.c         ****           lavar = MOLHO;
- 986               		.loc 1 283 0
- 987 01c4 2B9A      		sbi 0x5,3
- 284:W_M.c         ****           fsm_molho_init(&fsm_ml);
- 988               		.loc 1 284 0
- 989 01c6 B093 0000 		sts lavar,r27
- 990               	.LBB256:
- 991               	.LBB241:
- 123:W_M.c         ****   st->t_giro = 4000;
- 992               		.loc 1 123 0
- 993 01ca A093 0000 		sts fsm_ml,r26
- 124:W_M.c         **** }
- 994               		.loc 1 124 0
- 995 01ce 3093 0000 		sts fsm_ml+1+1,r19
- 996 01d2 2093 0000 		sts fsm_ml+1,r18
- 997               	.LBE241:
- 998               	.LBE256:
- 288:W_M.c         ****           // printf("Inicio MOLHO\n");
- 999               		.loc 1 288 0
- 1000 01d6 4E9B      		sbis 0x9,6
- 1001 01d8 00C0      		rjmp .L37
- 290:W_M.c         ****           fsm_lavagem_init(&fsm_lvg);
- 1002               		.loc 1 290 0
- 1003 01da F093 0000 		sts lavar,r31
- 1004               	.LBB257:
- 1005               	.LBB255:
- 129:W_M.c         ****   st->turns = 0;
- 1006               		.loc 1 129 0
- 1007 01de E093 0000 		sts fsm_lvg,r30
- 130:W_M.c         ****   st->t_espera = 2000;
- 1008               		.loc 1 130 0
- 1009 01e2 1092 0000 		sts fsm_lvg+5+1,__zero_reg__
- 1010 01e6 1092 0000 		sts fsm_lvg+5,__zero_reg__
- 131:W_M.c         ****   st->t_giros = 4000;
- 1011               		.loc 1 131 0
- 1012 01ea 7093 0000 		sts fsm_lvg+7+1,r23
- 1013 01ee 6093 0000 		sts fsm_lvg+7,r22
+ 740               		.loc 1 129 0
+ 741 008e 88E0      		ldi r24,lo8(8)
+ 742 0090 8093 0000 		sts fsm_lvg,r24
+ 130:W_M.c         ****   st->t_espera = 1000;
+ 743               		.loc 1 130 0
+ 744 0094 1092 0000 		sts fsm_lvg+5+1,__zero_reg__
+ 745 0098 1092 0000 		sts fsm_lvg+5,__zero_reg__
+ 131:W_M.c         ****   st->t_giros = 2400;
+ 746               		.loc 1 131 0
+ 747 009c 88EE      		ldi r24,lo8(-24)
+ 748 009e 93E0      		ldi r25,lo8(3)
+ 749 00a0 9093 0000 		sts fsm_lvg+7+1,r25
+ 750 00a4 8093 0000 		sts fsm_lvg+7,r24
  132:W_M.c         ****   st->instante = chVTGetSystemTime();
- 1014               		.loc 1 132 0
- 1015 01f2 3093 0000 		sts fsm_lvg+9+1,r19
- 1016 01f6 2093 0000 		sts fsm_lvg+9,r18
- 1017               	.LBB244:
- 1018               	.LBB245:
- 1019               	.LBB246:
- 1020               	.LBB247:
- 1021               	.LBB248:
+ 751               		.loc 1 132 0
+ 752 00a8 80E6      		ldi r24,lo8(96)
+ 753 00aa 99E0      		ldi r25,lo8(9)
+ 754 00ac 9093 0000 		sts fsm_lvg+9+1,r25
+ 755 00b0 8093 0000 		sts fsm_lvg+9,r24
+ 756               	.LBB198:
+ 757               	.LBB199:
+ 758               	.LBB200:
+ 759               	.LBB201:
+ 760               	.LBB202:
  437:../../../os/common/ports/AVR/chcore.h **** }
- 1022               		.loc 2 437 0
- 1023               	/* #APP */
- 1024               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
- 1025 01fa F894      		cli
- 1026               	 ;  0 "" 2
- 1027               	/* #NOAPP */
- 1028               	.LBE248:
- 1029               	.LBE247:
- 1030               	.LBE246:
- 1031               	.LBB249:
- 1032               	.LBB250:
- 1033               		.loc 3 118 0
- 1034 01fc 8091 0000 		lds r24,ch+19
- 1035 0200 9091 0000 		lds r25,ch+19+1
- 1036               	.LBE250:
- 1037               	.LBE249:
- 1038               	.LBB251:
- 1039               	.LBB252:
- 1040               	.LBB253:
- 1041               	.LBB254:
- 1042               		.loc 2 447 0
- 1043               	/* #APP */
- 1044               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
- 1045 0204 7894      		sei
- 1046               	 ;  0 "" 2
- 1047               	/* #NOAPP */
- 1048               	.LBE254:
- 1049               	.LBE253:
- 1050               	.LBE252:
- 1051               	.LBE251:
- 1052               	.LBE245:
- 1053               	.LBE244:
+ 761               		.loc 2 437 0
+ 762               	/* #APP */
+ 763               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
+ 764 00b4 F894      		cli
+ 765               	 ;  0 "" 2
+ 766               	/* #NOAPP */
+ 767               	.LBE202:
+ 768               	.LBE201:
+ 769               	.LBE200:
+ 770               	.LBB203:
+ 771               	.LBB204:
+ 772               		.loc 3 118 0
+ 773 00b6 8091 0000 		lds r24,ch+19
+ 774 00ba 9091 0000 		lds r25,ch+19+1
+ 775               	.LBE204:
+ 776               	.LBE203:
+ 777               	.LBB205:
+ 778               	.LBB206:
+ 779               	.LBB207:
+ 780               	.LBB208:
+ 781               		.loc 2 447 0
+ 782               	/* #APP */
+ 783               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
+ 784 00be 7894      		sei
+ 785               	 ;  0 "" 2
+ 786               	/* #NOAPP */
+ 787               	.LBE208:
+ 788               	.LBE207:
+ 789               	.LBE206:
+ 790               	.LBE205:
+ 791               	.LBE199:
+ 792               	.LBE198:
  133:W_M.c         ****   st->ul_espera = st->instante;
- 1054               		.loc 1 133 0
- 1055 0206 9093 0000 		sts fsm_lvg+1+1,r25
- 1056 020a 8093 0000 		sts fsm_lvg+1,r24
+ 793               		.loc 1 133 0
+ 794 00c0 9093 0000 		sts fsm_lvg+1+1,r25
+ 795 00c4 8093 0000 		sts fsm_lvg+1,r24
  134:W_M.c         **** }
- 1057               		.loc 1 134 0
- 1058 020e 9093 0000 		sts fsm_lvg+3+1,r25
- 1059 0212 8093 0000 		sts fsm_lvg+3,r24
- 1060               	.LBE255:
- 1061               	.LBE257:
- 292:W_M.c         ****           palClearPad(IOPORT2, MOLHO_ID);
- 1062               		.loc 1 292 0
- 1063 0216 5093 0000 		sts fsm_prd+1,r21
- 1064 021a 4093 0000 		sts fsm_prd,r20
- 293:W_M.c         ****         }
- 1065               		.loc 1 293 0
- 1066 021e 2898      		cbi 0x5,0
- 1067               	.L31:
- 296:W_M.c         ****           lavar = ENXAGUE;
- 1068               		.loc 1 296 0 discriminator 1
- 1069 0220 4E9B      		sbis 0x9,6
- 1070 0222 00C0      		rjmp .L33
- 297:W_M.c         ****           fsm_enxague_init(&fsm_exg);
- 1071               		.loc 1 297 0
- 1072 0224 E092 0000 		sts lavar,r14
- 1073               	.LBB258:
- 1074               	.LBB238:
- 139:W_M.c         ****   st->t_giro = 4000;
- 1075               		.loc 1 139 0
- 1076 0228 F092 0000 		sts fsm_exg,r15
- 140:W_M.c         **** }
- 1077               		.loc 1 140 0
- 1078 022c 3093 0000 		sts fsm_exg+1+1,r19
- 1079 0230 2093 0000 		sts fsm_exg+1,r18
- 1080               	.LBE238:
- 1081               	.LBE258:
- 299:W_M.c         ****           palClearPad(IOPORT2, LAVAGEM_ID);
- 1082               		.loc 1 299 0
- 1083 0234 D093 0000 		sts fsm_prd+1,r29
- 1084 0238 C093 0000 		sts fsm_prd,r28
- 300:W_M.c         **** 
- 1085               		.loc 1 300 0
- 1086 023c 2998      		cbi 0x5,1
- 1087               	.L34:
- 303:W_M.c         ****           lavar = CENTRIFUGA;
- 1088               		.loc 1 303 0 discriminator 1
- 1089 023e 4E9B      		sbis 0x9,6
- 1090 0240 00C0      		rjmp .L37
- 304:W_M.c         ****           fsm_centrifuga_init(&fsm_cen);
- 1091               		.loc 1 304 0
- 1092 0242 C092 0000 		sts lavar,r12
- 1093               	.LBB259:
- 1094               	.LBB235:
- 145:W_M.c         ****   st->tempo = chVTGetSystemTime();
- 1095               		.loc 1 145 0
- 1096 0246 D092 0000 		sts fsm_cen,r13
- 1097               	.LBB224:
- 1098               	.LBB225:
- 1099               	.LBB226:
- 1100               	.LBB227:
- 1101               	.LBB228:
- 437:../../../os/common/ports/AVR/chcore.h **** }
- 1102               		.loc 2 437 0
- 1103               	/* #APP */
- 1104               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
- 1105 024a F894      		cli
- 1106               	 ;  0 "" 2
- 1107               	/* #NOAPP */
- 1108               	.LBE228:
- 1109               	.LBE227:
- 1110               	.LBE226:
- 1111               	.LBB229:
- 1112               	.LBB230:
- 1113               		.loc 3 118 0
- 1114 024c 8091 0000 		lds r24,ch+19
- 1115 0250 9091 0000 		lds r25,ch+19+1
- 1116               	.LBE230:
- 1117               	.LBE229:
- 1118               	.LBB231:
- 1119               	.LBB232:
- 1120               	.LBB233:
- 1121               	.LBB234:
- 1122               		.loc 2 447 0
- 1123               	/* #APP */
- 1124               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
- 1125 0254 7894      		sei
- 1126               	 ;  0 "" 2
- 1127               	/* #NOAPP */
- 1128               	.LBE234:
- 1129               	.LBE233:
- 1130               	.LBE232:
- 1131               	.LBE231:
- 1132               	.LBE225:
- 1133               	.LBE224:
- 146:W_M.c         ****   st->ul_centri = st->tempo;
- 1134               		.loc 1 146 0
- 1135 0256 9093 0000 		sts fsm_cen+1+1,r25
- 1136 025a 8093 0000 		sts fsm_cen+1,r24
- 147:W_M.c         ****   st->t_centri = 4000;
- 1137               		.loc 1 147 0
- 1138 025e 9093 0000 		sts fsm_cen+3+1,r25
- 1139 0262 8093 0000 		sts fsm_cen+3,r24
- 148:W_M.c         **** }
- 1140               		.loc 1 148 0
- 1141 0266 3093 0000 		sts fsm_cen+5+1,r19
- 1142 026a 2093 0000 		sts fsm_cen+5,r18
- 1143               	.LBE235:
- 1144               	.LBE259:
- 306:W_M.c         ****           palClearPad(IOPORT2, ENXAGUE_ID);
- 1145               		.loc 1 306 0
- 1146 026e 1093 0000 		sts fsm_prd+1,r17
- 1147 0272 0093 0000 		sts fsm_prd,r16
- 307:W_M.c         ****           // printf("Inicio ENXAGUE\n");
- 1148               		.loc 1 307 0
- 1149 0276 2A98      		cbi 0x5,2
- 1150               	.L38:
- 310:W_M.c         ****           fsm_prd.select_init = 0;
- 1151               		.loc 1 310 0 discriminator 1
- 1152 0278 4E9B      		sbis 0x9,6
- 1153 027a 00C0      		rjmp .L37
- 311:W_M.c         ****         }
- 1154               		.loc 1 311 0
- 1155 027c 1092 0000 		sts fsm_prd+1,__zero_reg__
- 1156 0280 1092 0000 		sts fsm_prd,__zero_reg__
- 1157               	.L37:
- 313:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Inicio do processo\n\r");
- 1158               		.loc 1 313 0
- 1159 0284 4D99      		sbic 0x9,5
- 1160 0286 00C0      		rjmp .L74
- 1161               	.L39:
- 278:W_M.c         ****           palSetPad(IOPORT4, PARADA_ID);
- 1162               		.loc 1 278 0
- 1163 0288 8091 0000 		lds r24,fsm_prd
- 1164 028c 9091 0000 		lds r25,fsm_prd+1
- 1165 0290 0097      		sbiw r24,0
- 1166 0292 01F4      		brne .+2
- 1167 0294 00C0      		rjmp .L75
- 296:W_M.c         ****           lavar = ENXAGUE;
- 1168               		.loc 1 296 0
- 1169 0296 8130      		cpi r24,1
- 1170 0298 9105      		cpc r25,__zero_reg__
- 1171 029a 01F4      		brne .+2
- 1172 029c 00C0      		rjmp .L31
- 303:W_M.c         ****           lavar = CENTRIFUGA;
- 1173               		.loc 1 303 0
- 1174 029e 8230      		cpi r24,2
- 1175 02a0 9105      		cpc r25,__zero_reg__
- 1176 02a2 01F0      		breq .L34
- 1177               	.L35:
- 310:W_M.c         ****           fsm_prd.select_init = 0;
- 1178               		.loc 1 310 0
- 1179 02a4 0397      		sbiw r24,3
- 1180 02a6 01F0      		breq .L38
- 313:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Inicio do processo\n\r");
- 1181               		.loc 1 313 0
- 1182 02a8 4D9B      		sbis 0x9,5
- 1183 02aa 00C0      		rjmp .L39
- 1184               	.L74:
- 314:W_M.c         ****           return;
- 1185               		.loc 1 314 0
- 1186 02ac 80E0      		ldi r24,lo8(.LC6)
- 1187 02ae 90E0      		ldi r25,hi8(.LC6)
- 1188               	.L71:
- 402:W_M.c         ****               // printf("Fim giros Lavagem\n");
- 1189               		.loc 1 402 0
- 1190 02b0 9F93      		push r25
- 1191               	.LCFI58:
- 1192               		.cfi_def_cfa_offset 11
- 1193 02b2 8F93      		push r24
- 1194               	.LCFI59:
- 1195               		.cfi_def_cfa_offset 12
- 1196 02b4 80E0      		ldi r24,lo8(SD1)
- 1197 02b6 90E0      		ldi r25,hi8(SD1)
- 1198 02b8 9F93      		push r25
- 1199               	.LCFI60:
- 1200               		.cfi_def_cfa_offset 13
- 1201 02ba 8F93      		push r24
- 1202               	.LCFI61:
- 1203               		.cfi_def_cfa_offset 14
- 1204 02bc 0E94 0000 		call chprintf
- 1205 02c0 0F90      		pop __tmp_reg__
- 1206 02c2 0F90      		pop __tmp_reg__
- 1207 02c4 0F90      		pop __tmp_reg__
- 1208 02c6 0F90      		pop __tmp_reg__
- 1209               	.LCFI62:
- 1210               		.cfi_def_cfa_offset 10
- 1211 02c8 00C0      		rjmp .L20
- 1212               	.L33:
- 1213 02ca 8091 0000 		lds r24,fsm_prd
- 1214 02ce 9091 0000 		lds r25,fsm_prd+1
- 1215 02d2 00C0      		rjmp .L35
- 1216               	.L27:
- 438:W_M.c         ****     palClearPad(IOPORT2, LAVAGEM_ID);
- 1217               		.loc 1 438 0
- 1218 02d4 2898      		cbi 0x5,0
- 439:W_M.c         ****     palSetPad(IOPORT2, ENXAGUE_ID);
- 1219               		.loc 1 439 0
- 1220 02d6 2998      		cbi 0x5,1
- 440:W_M.c         ****     palClearPad(IOPORT2, CENTRI_ID);
- 1221               		.loc 1 440 0
- 1222 02d8 2A9A      		sbi 0x5,2
- 441:W_M.c         ****     palClearPad(IOPORT4, PARADA_ID);
- 1223               		.loc 1 441 0
- 1224 02da 2B98      		cbi 0x5,3
- 442:W_M.c         **** 
- 1225               		.loc 1 442 0
- 1226 02dc 5F98      		cbi 0xb,7
- 444:W_M.c         ****         case(ENCHER_EXG):
- 1227               		.loc 1 444 0
- 1228 02de 8091 0000 		lds r24,fsm_exg
- 1229 02e2 8C30      		cpi r24,lo8(12)
- 1230 02e4 01F4      		brne .+2
- 1231 02e6 00C0      		rjmp .L48
- 1232 02e8 8D30      		cpi r24,lo8(13)
- 1233 02ea 01F4      		brne .+2
- 1234 02ec 00C0      		rjmp .L49
- 1235 02ee 8B30      		cpi r24,lo8(11)
- 1236 02f0 01F0      		breq .+2
- 1237 02f2 00C0      		rjmp .L20
- 450:W_M.c         ****           palSetPad(IOPORT2, ENCHE_ID);
- 1238               		.loc 1 450 0
- 1239 02f4 80E0      		ldi r24,lo8(.LC17)
- 1240 02f6 90E0      		ldi r25,hi8(.LC17)
- 1241 02f8 9F93      		push r25
- 1242               	.LCFI63:
- 1243               		.cfi_def_cfa_offset 11
- 1244 02fa 8F93      		push r24
- 1245               	.LCFI64:
- 1246               		.cfi_def_cfa_offset 12
- 1247 02fc 80E0      		ldi r24,lo8(SD1)
- 1248 02fe 90E0      		ldi r25,hi8(SD1)
- 1249 0300 9F93      		push r25
- 1250               	.LCFI65:
- 1251               		.cfi_def_cfa_offset 13
- 1252 0302 8F93      		push r24
- 1253               	.LCFI66:
- 1254               		.cfi_def_cfa_offset 14
- 1255 0304 0E94 0000 		call chprintf
- 451:W_M.c         ****           if(palReadPad(IOPORT4, SEN_CHEIO) == PAL_HIGH){
- 1256               		.loc 1 451 0
- 1257 0308 2C9A      		sbi 0x5,4
- 452:W_M.c         ****             // printf("Sensor Cheio: ON\n");
- 1258               		.loc 1 452 0
- 1259 030a 0F90      		pop __tmp_reg__
- 1260 030c 0F90      		pop __tmp_reg__
- 1261 030e 0F90      		pop __tmp_reg__
- 1262 0310 0F90      		pop __tmp_reg__
- 1263               	.LCFI67:
- 1264               		.cfi_def_cfa_offset 10
- 1265 0312 4C9B      		sbis 0x9,4
- 1266 0314 00C0      		rjmp .L20
- 454:W_M.c         ****             fsm_exg.exg = RODAR_EXG;
- 1267               		.loc 1 454 0
- 1268 0316 2C98      		cbi 0x5,4
+ 796               		.loc 1 134 0
+ 797 00c8 9093 0000 		sts fsm_lvg+3+1,r25
+ 798 00cc 8093 0000 		sts fsm_lvg+3,r24
+ 799               	.LBE197:
+ 800               	.LBE196:
+ 376:W_M.c         ****           fsm_lavagem_init(&fsm_lvg);
+ 377:W_M.c         ****           // printf("Fim Molho\n");
+ 378:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "FIM Molho\n\r");
+ 801               		.loc 1 378 0
+ 802 00d0 80E0      		ldi r24,lo8(.LC15)
+ 803 00d2 90E0      		ldi r25,hi8(.LC15)
+ 804 00d4 9F93      		push r25
+ 805               	.LCFI54:
+ 806               		.cfi_def_cfa_offset 25
+ 807 00d6 8F93      		push r24
+ 808               	.LCFI55:
+ 809               		.cfi_def_cfa_offset 26
+ 810 00d8 DF93      		push r29
+ 811               	.LCFI56:
+ 812               		.cfi_def_cfa_offset 27
+ 813 00da CF93      		push r28
+ 814               	.LCFI57:
+ 815               		.cfi_def_cfa_offset 28
+ 816 00dc 0E94 0000 		call chprintf
+ 379:W_M.c         ****           palClearPad(IOPORT2, MOLHO_ID);
+ 817               		.loc 1 379 0
+ 818 00e0 2898      		cbi 0x5,0
+ 380:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, ("Inicio LAVAGEM\n\r"));
+ 819               		.loc 1 380 0
+ 820 00e2 80E0      		ldi r24,lo8(.LC16)
+ 821 00e4 90E0      		ldi r25,hi8(.LC16)
+ 822 00e6 9F93      		push r25
+ 823               	.LCFI58:
+ 824               		.cfi_def_cfa_offset 29
+ 825 00e8 8F93      		push r24
+ 826               	.LCFI59:
+ 827               		.cfi_def_cfa_offset 30
+ 828 00ea DF93      		push r29
+ 829               	.LCFI60:
+ 830               		.cfi_def_cfa_offset 31
+ 831 00ec CF93      		push r28
+ 832               	.LCFI61:
+ 833               		.cfi_def_cfa_offset 32
+ 834 00ee 0E94 0000 		call chprintf
+ 381:W_M.c         ****           // printf("Inicio LAVAGEM\n");
+ 382:W_M.c         ****           break;
+ 835               		.loc 1 382 0
+ 836 00f2 8DB7      		in r24,__SP_L__
+ 837 00f4 9EB7      		in r25,__SP_H__
+ 838 00f6 0C96      		adiw r24,12
+ 839 00f8 0FB6      		in __tmp_reg__,__SREG__
+ 840 00fa F894      		cli
+ 841 00fc 9EBF      		out __SP_H__,r25
+ 842 00fe 0FBE      		out __SREG__,__tmp_reg__
+ 843 0100 8DBF      		out __SP_L__,r24
+ 844               	.LCFI62:
+ 845               		.cfi_def_cfa_offset 20
+ 846               	.L20:
+ 847               	/* epilogue start */
+ 383:W_M.c         ****       }
+ 384:W_M.c         ****       break;
+ 385:W_M.c         **** 
+ 386:W_M.c         **** 
+ 387:W_M.c         ****     case(LAVAGEM):
+ 388:W_M.c         ****       // printf("Inicio Lavagem\n");
+ 389:W_M.c         ****       palClearPad(IOPORT2, MOLHO_ID);
+ 390:W_M.c         ****       palSetPad(IOPORT2, LAVAGEM_ID);
+ 391:W_M.c         ****       palClearPad(IOPORT2, ENXAGUE_ID);
+ 392:W_M.c         ****       palClearPad(IOPORT2, CENTRI_ID);
+ 393:W_M.c         ****       palClearPad(IOPORT4, PARADA_ID);
+ 394:W_M.c         **** 
+ 395:W_M.c         ****       switch(fsm_lvg.lvg){
+ 396:W_M.c         ****         case(RODAR_LVG):
+ 397:W_M.c         ****           if(lavar == EMERGENCIA){
+ 398:W_M.c         ****             break;
+ 399:W_M.c         ****           } // verifcar emergência
+ 400:W_M.c         ****           // printf("DEBUG Super LAVAGEM - estado RODAR_LVG\n");
+ 401:W_M.c         ****           // printf("Inicio giros Lavagem\n");
+ 402:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Giros Lavagem\n\r");
+ 403:W_M.c         ****           spinning(fsm_lvg.t_giros);
+ 404:W_M.c         ****           fsm_lvg.ul_espera = chVTGetSystemTime();
+ 405:W_M.c         ****           fsm_lvg.lvg = ESPERA_LVG;
+ 406:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Espera Lavagem\n\r");
+ 407:W_M.c         ****           // printf("DEBUG: Super LAVAGEM - estado ESPERA\n");
+ 408:W_M.c         **** 
+ 409:W_M.c         ****           break;
+ 410:W_M.c         **** 
+ 411:W_M.c         ****         case(ESPERA_LVG):
+ 412:W_M.c         ****           if(lavar == EMERGENCIA){
+ 413:W_M.c         ****             break;
+ 414:W_M.c         ****           } // verifcar emergência
+ 415:W_M.c         ****           fsm_lvg.instante = chVTGetSystemTime();
+ 416:W_M.c         ****           if(fsm_lvg.instante - fsm_lvg.ul_espera > TIME_MS2I(fsm_lvg.t_espera)){
+ 417:W_M.c         ****             fsm_lvg.ul_espera = chVTGetSystemTime();
+ 418:W_M.c         ****             if(fsm_lvg.turns >= 3){
+ 419:W_M.c         ****               fsm_lvg.turns = 0;
+ 420:W_M.c         ****               fsm_lvg.lvg = ESVAZIA_LVG;
+ 421:W_M.c         ****               chprintf((BaseSequentialStream *)&SD1, "Esvazia Lavagem \n\r");
+ 422:W_M.c         ****               // printf("Fim giros Lavagem\n");
+ 423:W_M.c         **** 
+ 424:W_M.c         ****             } else {
+ 425:W_M.c         ****               fsm_lvg.turns ++;
+ 426:W_M.c         ****               fsm_lvg.lvg = RODAR_LVG;
+ 427:W_M.c         ****             } // fim if voltas
+ 428:W_M.c         ****           } // fim if tempo
+ 429:W_M.c         ****           break;
+ 430:W_M.c         **** 
+ 431:W_M.c         **** 
+ 432:W_M.c         ****         case(ESVAZIA_LVG):
+ 433:W_M.c         ****           if(lavar == EMERGENCIA){
+ 434:W_M.c         ****             break;
+ 435:W_M.c         ****           } // verificar emergência
+ 436:W_M.c         ****           palSetPad(IOPORT2, SECA_ID);
+ 437:W_M.c         ****           // printf("DEBUG: Super LAVAGEM - estado ESVAZIA_LVG\n");
+ 438:W_M.c         ****           if(palReadPad(IOPORT4, SEN_VAZIO) == PAL_HIGH){
+ 439:W_M.c         ****             // printf("Sensor Vazio: ON\n");
+ 440:W_M.c         ****             palClearPad(IOPORT2, SECA_ID);
+ 441:W_M.c         ****             // printf("Fim LAVAGEM\n");
+ 442:W_M.c         ****             chprintf((BaseSequentialStream *)&SD1, "Fim Lavagem\n\r");
+ 443:W_M.c         ****             palClearPad(IOPORT2, LAVAGEM_ID);
+ 444:W_M.c         **** 
+ 445:W_M.c         ****             // printf("Inicio ENXAGUE\n");
+ 446:W_M.c         ****             chprintf((BaseSequentialStream *)&SD1, "Inicio Enxague\n\r");
+ 447:W_M.c         ****               lavar = ENXAGUE;
+ 448:W_M.c         **** 
+ 449:W_M.c         ****               fsm_enxague_init(&fsm_exg);
+ 450:W_M.c         ****               chprintf((BaseSequentialStream *)&SD1, "Enche Enxague\n\r");
+ 451:W_M.c         ****             } // fim "if" sensor vazio
+ 452:W_M.c         ****             break;
+ 453:W_M.c         ****           } // fim switch LAVAGEM
+ 454:W_M.c         ****           break;
  455:W_M.c         **** 
- 1269               		.loc 1 455 0
- 1270 0318 8CE0      		ldi r24,lo8(12)
- 1271 031a 8093 0000 		sts fsm_exg,r24
- 1272 031e 00C0      		rjmp .L20
- 1273               	.L22:
- 370:W_M.c         ****       palSetPad(IOPORT2, LAVAGEM_ID);
- 1274               		.loc 1 370 0
- 1275 0320 2898      		cbi 0x5,0
- 371:W_M.c         ****       palClearPad(IOPORT2, ENXAGUE_ID);
- 1276               		.loc 1 371 0
- 1277 0322 299A      		sbi 0x5,1
- 372:W_M.c         ****       palClearPad(IOPORT2, CENTRI_ID);
- 1278               		.loc 1 372 0
- 1279 0324 2A98      		cbi 0x5,2
- 373:W_M.c         ****       palClearPad(IOPORT4, PARADA_ID);
- 1280               		.loc 1 373 0
- 1281 0326 2B98      		cbi 0x5,3
- 374:W_M.c         **** 
- 1282               		.loc 1 374 0
- 1283 0328 5F98      		cbi 0xb,7
- 376:W_M.c         ****         case(RODAR_LVG):
- 1284               		.loc 1 376 0
- 1285 032a 8091 0000 		lds r24,fsm_lvg
- 1286 032e 8930      		cpi r24,lo8(9)
- 1287 0330 01F4      		brne .+2
- 1288 0332 00C0      		rjmp .L43
- 1289 0334 8A30      		cpi r24,lo8(10)
- 1290 0336 01F4      		brne .+2
- 1291 0338 00C0      		rjmp .L44
- 1292 033a 8830      		cpi r24,lo8(8)
- 1293 033c 01F0      		breq .+2
- 1294 033e 00C0      		rjmp .L20
- 383:W_M.c         ****           spinning(fsm_lvg.t_giros);
- 1295               		.loc 1 383 0
- 1296 0340 80E0      		ldi r24,lo8(.LC12)
- 1297 0342 90E0      		ldi r25,hi8(.LC12)
- 1298 0344 9F93      		push r25
- 1299               	.LCFI68:
- 1300               		.cfi_def_cfa_offset 11
- 1301 0346 8F93      		push r24
- 1302               	.LCFI69:
- 1303               		.cfi_def_cfa_offset 12
- 1304 0348 C0E0      		ldi r28,lo8(SD1)
- 1305 034a D0E0      		ldi r29,hi8(SD1)
- 1306 034c DF93      		push r29
- 1307               	.LCFI70:
- 1308               		.cfi_def_cfa_offset 13
- 1309 034e CF93      		push r28
- 1310               	.LCFI71:
- 1311               		.cfi_def_cfa_offset 14
- 1312 0350 0E94 0000 		call chprintf
- 384:W_M.c         ****           fsm_lvg.ul_espera = chVTGetSystemTime();
- 1313               		.loc 1 384 0
- 1314 0354 8091 0000 		lds r24,fsm_lvg+9
- 1315 0358 9091 0000 		lds r25,fsm_lvg+9+1
- 1316 035c 0E94 0000 		call spinning
- 1317               	.LBB260:
- 1318               	.LBB261:
- 1319               	.LBB262:
- 1320               	.LBB263:
- 1321               	.LBB264:
- 437:../../../os/common/ports/AVR/chcore.h **** }
- 1322               		.loc 2 437 0
- 1323               	/* #APP */
- 1324               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
- 1325 0360 F894      		cli
- 1326               	 ;  0 "" 2
- 1327               	/* #NOAPP */
- 1328               	.LBE264:
- 1329               	.LBE263:
- 1330               	.LBE262:
- 1331               	.LBB265:
- 1332               	.LBB266:
- 1333               		.loc 3 118 0
- 1334 0362 8091 0000 		lds r24,ch+19
- 1335 0366 9091 0000 		lds r25,ch+19+1
- 1336               	.LBE266:
- 1337               	.LBE265:
- 1338               	.LBB267:
- 1339               	.LBB268:
- 1340               	.LBB269:
- 1341               	.LBB270:
- 1342               		.loc 2 447 0
- 1343               	/* #APP */
- 1344               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
- 1345 036a 7894      		sei
- 1346               	 ;  0 "" 2
- 1347               	/* #NOAPP */
- 1348               	.LBE270:
- 1349               	.LBE269:
- 1350               	.LBE268:
- 1351               	.LBE267:
- 1352               	.LBE261:
- 1353               	.LBE260:
- 385:W_M.c         ****           fsm_lvg.lvg = ESPERA_LVG;
- 1354               		.loc 1 385 0
- 1355 036c 9093 0000 		sts fsm_lvg+3+1,r25
- 1356 0370 8093 0000 		sts fsm_lvg+3,r24
- 386:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Espera Lavagem\n\r");
- 1357               		.loc 1 386 0
- 1358 0374 89E0      		ldi r24,lo8(9)
- 1359 0376 8093 0000 		sts fsm_lvg,r24
- 387:W_M.c         ****           // printf("DEBUG: Super LAVAGEM - estado ESPERA\n");
- 1360               		.loc 1 387 0
- 1361 037a 80E0      		ldi r24,lo8(.LC13)
- 1362 037c 90E0      		ldi r25,hi8(.LC13)
- 1363 037e 9F93      		push r25
- 1364               	.LCFI72:
- 1365               		.cfi_def_cfa_offset 15
- 1366 0380 8F93      		push r24
- 1367               	.LCFI73:
- 1368               		.cfi_def_cfa_offset 16
- 1369 0382 DF93      		push r29
- 1370               	.LCFI74:
- 1371               		.cfi_def_cfa_offset 17
- 1372 0384 CF93      		push r28
- 1373               	.LCFI75:
- 1374               		.cfi_def_cfa_offset 18
- 1375 0386 0E94 0000 		call chprintf
- 390:W_M.c         **** 
- 1376               		.loc 1 390 0
- 1377 038a 8DB7      		in r24,__SP_L__
- 1378 038c 9EB7      		in r25,__SP_H__
- 1379 038e 0896      		adiw r24,8
- 1380 0390 0FB6      		in __tmp_reg__,__SREG__
- 1381 0392 F894      		cli
- 1382 0394 9EBF      		out __SP_H__,r25
- 1383 0396 0FBE      		out __SREG__,__tmp_reg__
- 1384 0398 8DBF      		out __SP_L__,r24
- 1385               	.LCFI76:
- 1386               		.cfi_def_cfa_offset 10
- 1387 039a 00C0      		rjmp .L20
- 1388               	.L40:
- 338:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Enchendo... \n\r");
- 1389               		.loc 1 338 0
- 1390 039c 2C9A      		sbi 0x5,4
- 339:W_M.c         ****           if(palReadPad(IOPORT4, SEN_CHEIO) == PAL_HIGH){
- 1391               		.loc 1 339 0
- 1392 039e 80E0      		ldi r24,lo8(.LC7)
- 1393 03a0 90E0      		ldi r25,hi8(.LC7)
- 1394 03a2 9F93      		push r25
- 1395               	.LCFI77:
- 1396               		.cfi_def_cfa_offset 11
- 1397 03a4 8F93      		push r24
- 1398               	.LCFI78:
- 1399               		.cfi_def_cfa_offset 12
- 1400 03a6 C0E0      		ldi r28,lo8(SD1)
- 1401 03a8 D0E0      		ldi r29,hi8(SD1)
- 1402 03aa DF93      		push r29
- 1403               	.LCFI79:
- 1404               		.cfi_def_cfa_offset 13
- 1405 03ac CF93      		push r28
- 1406               	.LCFI80:
- 1407               		.cfi_def_cfa_offset 14
- 1408 03ae 0E94 0000 		call chprintf
- 340:W_M.c         ****             // printf("Sensor Cheio\n");
- 1409               		.loc 1 340 0
- 1410 03b2 0F90      		pop __tmp_reg__
- 1411 03b4 0F90      		pop __tmp_reg__
- 1412 03b6 0F90      		pop __tmp_reg__
- 1413 03b8 0F90      		pop __tmp_reg__
- 1414               	.LCFI81:
- 1415               		.cfi_def_cfa_offset 10
- 1416 03ba 4C9B      		sbis 0x9,4
- 1417 03bc 00C0      		rjmp .L20
- 342:W_M.c         ****             palClearPad(IOPORT2, ENCHE_ID);
- 1418               		.loc 1 342 0
- 1419 03be 80E0      		ldi r24,lo8(.LC8)
- 1420 03c0 90E0      		ldi r25,hi8(.LC8)
- 1421 03c2 9F93      		push r25
- 1422               	.LCFI82:
- 1423               		.cfi_def_cfa_offset 11
- 1424 03c4 8F93      		push r24
- 1425               	.LCFI83:
- 1426               		.cfi_def_cfa_offset 12
- 1427 03c6 DF93      		push r29
- 1428               	.LCFI84:
- 1429               		.cfi_def_cfa_offset 13
- 1430 03c8 CF93      		push r28
- 1431               	.LCFI85:
- 1432               		.cfi_def_cfa_offset 14
- 1433 03ca 0E94 0000 		call chprintf
- 343:W_M.c         ****             fsm_ml.ml = RODAR_ML;
- 1434               		.loc 1 343 0
- 1435 03ce 2C98      		cbi 0x5,4
- 344:W_M.c         ****             // printf("Início Giros Molho\n");
- 1436               		.loc 1 344 0
- 1437 03d0 87E0      		ldi r24,lo8(7)
- 1438 03d2 8093 0000 		sts fsm_ml,r24
- 1439 03d6 0F90      		pop __tmp_reg__
- 1440 03d8 0F90      		pop __tmp_reg__
- 1441 03da 0F90      		pop __tmp_reg__
- 1442 03dc 0F90      		pop __tmp_reg__
- 1443               	.LCFI86:
- 1444               		.cfi_def_cfa_offset 10
- 1445 03de 00C0      		rjmp .L20
- 1446               	.L44:
- 417:W_M.c         ****           // printf("DEBUG: Super LAVAGEM - estado ESVAZIA_LVG\n");
- 1447               		.loc 1 417 0
- 1448 03e0 2D9A      		sbi 0x5,5
- 419:W_M.c         ****             // printf("Sensor Vazio: ON\n");
- 1449               		.loc 1 419 0
- 1450 03e2 4B9B      		sbis 0x9,3
- 1451 03e4 00C0      		rjmp .L20
- 421:W_M.c         ****             // printf("Fim LAVAGEM\n");
- 1452               		.loc 1 421 0
- 1453 03e6 2D98      		cbi 0x5,5
- 423:W_M.c         ****             palClearPad(IOPORT2, LAVAGEM_ID);
- 1454               		.loc 1 423 0
- 1455 03e8 80E0      		ldi r24,lo8(.LC15)
- 1456 03ea 90E0      		ldi r25,hi8(.LC15)
- 1457 03ec 9F93      		push r25
- 1458               	.LCFI87:
- 1459               		.cfi_def_cfa_offset 11
- 1460 03ee 8F93      		push r24
- 1461               	.LCFI88:
- 1462               		.cfi_def_cfa_offset 12
- 1463 03f0 C0E0      		ldi r28,lo8(SD1)
- 1464 03f2 D0E0      		ldi r29,hi8(SD1)
- 1465 03f4 DF93      		push r29
- 1466               	.LCFI89:
- 1467               		.cfi_def_cfa_offset 13
- 1468 03f6 CF93      		push r28
- 1469               	.LCFI90:
- 1470               		.cfi_def_cfa_offset 14
- 1471 03f8 0E94 0000 		call chprintf
- 424:W_M.c         **** 
- 1472               		.loc 1 424 0
- 1473 03fc 2998      		cbi 0x5,1
- 427:W_M.c         ****               lavar = ENXAGUE;
- 1474               		.loc 1 427 0
- 1475 03fe 80E0      		ldi r24,lo8(.LC16)
- 1476 0400 90E0      		ldi r25,hi8(.LC16)
- 1477 0402 9F93      		push r25
- 1478               	.LCFI91:
- 1479               		.cfi_def_cfa_offset 15
- 1480 0404 8F93      		push r24
- 1481               	.LCFI92:
- 1482               		.cfi_def_cfa_offset 16
- 1483 0406 DF93      		push r29
- 1484               	.LCFI93:
- 1485               		.cfi_def_cfa_offset 17
- 1486 0408 CF93      		push r28
- 1487               	.LCFI94:
- 1488               		.cfi_def_cfa_offset 18
- 1489 040a 0E94 0000 		call chprintf
- 428:W_M.c         **** 
- 1490               		.loc 1 428 0
- 1491 040e 83E0      		ldi r24,lo8(3)
- 1492 0410 8093 0000 		sts lavar,r24
- 1493               	.LBB271:
- 1494               	.LBB272:
- 139:W_M.c         ****   st->t_giro = 4000;
- 1495               		.loc 1 139 0
- 1496 0414 8BE0      		ldi r24,lo8(11)
- 1497 0416 8093 0000 		sts fsm_exg,r24
- 140:W_M.c         **** }
- 1498               		.loc 1 140 0
- 1499 041a 80EA      		ldi r24,lo8(-96)
- 1500 041c 9FE0      		ldi r25,lo8(15)
- 1501 041e 9093 0000 		sts fsm_exg+1+1,r25
- 1502 0422 8093 0000 		sts fsm_exg+1,r24
- 1503 0426 8DB7      		in r24,__SP_L__
- 1504 0428 9EB7      		in r25,__SP_H__
- 1505 042a 0896      		adiw r24,8
- 1506 042c 0FB6      		in __tmp_reg__,__SREG__
- 1507 042e F894      		cli
- 1508 0430 9EBF      		out __SP_H__,r25
- 1509 0432 0FBE      		out __SREG__,__tmp_reg__
- 1510 0434 8DBF      		out __SP_L__,r24
- 1511               	.LCFI95:
- 1512               		.cfi_def_cfa_offset 10
- 1513 0436 00C0      		rjmp .L20
- 1514               	.L43:
- 1515               	.LBE272:
- 1516               	.LBE271:
- 1517               	.LBB273:
- 1518               	.LBB274:
- 1519               	.LBB275:
- 1520               	.LBB276:
- 1521               	.LBB277:
- 437:../../../os/common/ports/AVR/chcore.h **** }
- 1522               		.loc 2 437 0
- 1523               	/* #APP */
- 1524               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
- 1525 0438 F894      		cli
- 1526               	 ;  0 "" 2
- 1527               	/* #NOAPP */
- 1528               	.LBE277:
- 1529               	.LBE276:
- 1530               	.LBE275:
- 1531               	.LBB278:
- 1532               	.LBB279:
- 1533               		.loc 3 118 0
- 1534 043a 8091 0000 		lds r24,ch+19
- 1535 043e 9091 0000 		lds r25,ch+19+1
- 1536               	.LBE279:
- 1537               	.LBE278:
- 1538               	.LBB280:
- 1539               	.LBB281:
- 1540               	.LBB282:
- 1541               	.LBB283:
- 1542               		.loc 2 447 0
- 1543               	/* #APP */
- 1544               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
- 1545 0442 7894      		sei
- 1546               	 ;  0 "" 2
- 1547               	/* #NOAPP */
- 1548               	.LBE283:
- 1549               	.LBE282:
- 1550               	.LBE281:
- 1551               	.LBE280:
- 1552               	.LBE274:
- 1553               	.LBE273:
- 396:W_M.c         ****           if(fsm_lvg.instante - fsm_lvg.ul_espera > TIME_MS2I(fsm_lvg.t_espera)){
- 1554               		.loc 1 396 0
- 1555 0444 9093 0000 		sts fsm_lvg+1+1,r25
- 1556 0448 8093 0000 		sts fsm_lvg+1,r24
- 397:W_M.c         ****             fsm_lvg.ul_espera = chVTGetSystemTime();
- 1557               		.loc 1 397 0
- 1558 044c A091 0000 		lds r26,fsm_lvg+7
- 1559 0450 B091 0000 		lds r27,fsm_lvg+7+1
- 1560 0454 2091 0000 		lds r18,fsm_lvg+3
- 1561 0458 3091 0000 		lds r19,fsm_lvg+3+1
- 1562 045c EC01      		movw r28,r24
- 1563 045e C21B      		sub r28,r18
- 1564 0460 D30B      		sbc r29,r19
- 1565 0462 28E0      		ldi r18,lo8(8)
- 1566 0464 3DE3      		ldi r19,lo8(61)
- 1567 0466 0E94 0000 		call __usmulhisi3
- 1568 046a 6951      		subi r22,25
- 1569 046c 7C4F      		sbci r23,-4
- 1570 046e 8F4F      		sbci r24,-1
- 1571 0470 9F4F      		sbci r25,-1
- 1572 0472 28EE      		ldi r18,lo8(-24)
- 1573 0474 33E0      		ldi r19,lo8(3)
- 1574 0476 40E0      		ldi r20,0
- 1575 0478 50E0      		ldi r21,0
- 1576 047a 0E94 0000 		call __udivmodsi4
- 1577 047e 2C17      		cp r18,r28
- 1578 0480 3D07      		cpc r19,r29
- 1579 0482 00F0      		brlo .+2
- 1580 0484 00C0      		rjmp .L20
- 1581               	.LBB284:
- 1582               	.LBB285:
- 1583               	.LBB286:
- 1584               	.LBB287:
- 1585               	.LBB288:
- 437:../../../os/common/ports/AVR/chcore.h **** }
- 1586               		.loc 2 437 0
- 1587               	/* #APP */
- 1588               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
- 1589 0486 F894      		cli
- 1590               	 ;  0 "" 2
- 1591               	/* #NOAPP */
- 1592               	.LBE288:
- 1593               	.LBE287:
- 1594               	.LBE286:
- 1595               	.LBB289:
- 1596               	.LBB290:
- 1597               		.loc 3 118 0
- 1598 0488 8091 0000 		lds r24,ch+19
- 1599 048c 9091 0000 		lds r25,ch+19+1
- 1600               	.LBE290:
- 1601               	.LBE289:
- 1602               	.LBB291:
- 1603               	.LBB292:
- 1604               	.LBB293:
- 1605               	.LBB294:
- 1606               		.loc 2 447 0
- 1607               	/* #APP */
- 1608               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
- 1609 0490 7894      		sei
- 1610               	 ;  0 "" 2
- 1611               	/* #NOAPP */
- 1612               	.LBE294:
- 1613               	.LBE293:
- 1614               	.LBE292:
- 1615               	.LBE291:
- 1616               	.LBE285:
- 1617               	.LBE284:
- 398:W_M.c         ****             if(fsm_lvg.turns >= 3){
- 1618               		.loc 1 398 0
- 1619 0492 9093 0000 		sts fsm_lvg+3+1,r25
- 1620 0496 8093 0000 		sts fsm_lvg+3,r24
- 399:W_M.c         ****               fsm_lvg.turns = 0;
- 1621               		.loc 1 399 0
- 1622 049a 8091 0000 		lds r24,fsm_lvg+5
- 1623 049e 9091 0000 		lds r25,fsm_lvg+5+1
- 1624 04a2 8330      		cpi r24,3
- 1625 04a4 9105      		cpc r25,__zero_reg__
- 1626 04a6 04F0      		brlt .+2
- 1627 04a8 00C0      		rjmp .L76
- 406:W_M.c         ****               fsm_lvg.lvg = RODAR_LVG;
- 1628               		.loc 1 406 0
- 1629 04aa 0196      		adiw r24,1
- 1630 04ac 9093 0000 		sts fsm_lvg+5+1,r25
- 1631 04b0 8093 0000 		sts fsm_lvg+5,r24
- 407:W_M.c         ****             } // fim if voltas
- 1632               		.loc 1 407 0
- 1633 04b4 88E0      		ldi r24,lo8(8)
- 1634 04b6 8093 0000 		sts fsm_lvg,r24
- 1635 04ba 00C0      		rjmp .L20
- 1636               	.L48:
- 465:W_M.c         ****           spinning(fsm_exg.t_giro);
- 1637               		.loc 1 465 0
- 1638 04bc 80E0      		ldi r24,lo8(.LC18)
- 1639 04be 90E0      		ldi r25,hi8(.LC18)
- 1640 04c0 9F93      		push r25
- 1641               	.LCFI96:
- 1642               		.cfi_def_cfa_offset 11
- 1643 04c2 8F93      		push r24
- 1644               	.LCFI97:
- 1645               		.cfi_def_cfa_offset 12
- 1646 04c4 80E0      		ldi r24,lo8(SD1)
- 1647 04c6 90E0      		ldi r25,hi8(SD1)
- 1648 04c8 9F93      		push r25
- 1649               	.LCFI98:
- 1650               		.cfi_def_cfa_offset 13
- 1651 04ca 8F93      		push r24
- 1652               	.LCFI99:
- 1653               		.cfi_def_cfa_offset 14
- 1654 04cc 0E94 0000 		call chprintf
- 466:W_M.c         ****           fsm_exg.exg = ESVAZIA_EXG;
- 1655               		.loc 1 466 0
- 1656 04d0 8091 0000 		lds r24,fsm_exg+1
- 1657 04d4 9091 0000 		lds r25,fsm_exg+1+1
- 1658 04d8 0E94 0000 		call spinning
- 467:W_M.c         **** 
- 1659               		.loc 1 467 0
- 1660 04dc 8DE0      		ldi r24,lo8(13)
- 1661 04de 8093 0000 		sts fsm_exg,r24
- 469:W_M.c         **** 
- 1662               		.loc 1 469 0
- 1663 04e2 0F90      		pop __tmp_reg__
- 1664 04e4 0F90      		pop __tmp_reg__
- 1665 04e6 0F90      		pop __tmp_reg__
- 1666 04e8 0F90      		pop __tmp_reg__
- 1667               	.LCFI100:
- 1668               		.cfi_def_cfa_offset 10
- 1669 04ea 00C0      		rjmp .L20
- 1670               	.L49:
- 477:W_M.c         ****           palSetPad(IOPORT2, SECA_ID);
- 1671               		.loc 1 477 0
- 1672 04ec 80E0      		ldi r24,lo8(.LC19)
- 1673 04ee 90E0      		ldi r25,hi8(.LC19)
- 1674 04f0 9F93      		push r25
- 1675               	.LCFI101:
- 1676               		.cfi_def_cfa_offset 11
- 1677 04f2 8F93      		push r24
- 1678               	.LCFI102:
- 1679               		.cfi_def_cfa_offset 12
- 1680 04f4 C0E0      		ldi r28,lo8(SD1)
- 1681 04f6 D0E0      		ldi r29,hi8(SD1)
- 1682 04f8 DF93      		push r29
- 1683               	.LCFI103:
- 1684               		.cfi_def_cfa_offset 13
- 1685 04fa CF93      		push r28
- 1686               	.LCFI104:
- 1687               		.cfi_def_cfa_offset 14
- 1688 04fc 0E94 0000 		call chprintf
- 478:W_M.c         ****           if(palReadPad(IOPORT4, SEN_VAZIO) == PAL_HIGH){
- 1689               		.loc 1 478 0
- 1690 0500 2D9A      		sbi 0x5,5
- 479:W_M.c         ****              // printf("Sensor Vazio: ON\n");
- 1691               		.loc 1 479 0
- 1692 0502 0F90      		pop __tmp_reg__
- 1693 0504 0F90      		pop __tmp_reg__
- 1694 0506 0F90      		pop __tmp_reg__
- 1695 0508 0F90      		pop __tmp_reg__
- 1696               	.LCFI105:
- 1697               		.cfi_def_cfa_offset 10
- 1698 050a 4B9B      		sbis 0x9,3
- 1699 050c 00C0      		rjmp .L20
- 481:W_M.c         ****              lavar = CENTRIFUGA;
- 1700               		.loc 1 481 0
- 1701 050e 2D98      		cbi 0x5,5
- 482:W_M.c         ****              fsm_centrifuga_init(&fsm_cen);
- 1702               		.loc 1 482 0
- 1703 0510 84E0      		ldi r24,lo8(4)
- 1704 0512 8093 0000 		sts lavar,r24
- 1705               	.LBB295:
- 1706               	.LBB296:
- 145:W_M.c         ****   st->tempo = chVTGetSystemTime();
- 1707               		.loc 1 145 0
- 1708 0516 8EE0      		ldi r24,lo8(14)
- 1709 0518 8093 0000 		sts fsm_cen,r24
- 1710               	.LBB297:
- 1711               	.LBB298:
- 1712               	.LBB299:
- 1713               	.LBB300:
- 1714               	.LBB301:
- 437:../../../os/common/ports/AVR/chcore.h **** }
- 1715               		.loc 2 437 0
- 1716               	/* #APP */
- 1717               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
- 1718 051c F894      		cli
- 1719               	 ;  0 "" 2
- 1720               	/* #NOAPP */
- 1721               	.LBE301:
- 1722               	.LBE300:
- 1723               	.LBE299:
- 1724               	.LBB302:
- 1725               	.LBB303:
- 1726               		.loc 3 118 0
- 1727 051e 8091 0000 		lds r24,ch+19
- 1728 0522 9091 0000 		lds r25,ch+19+1
- 1729               	.LBE303:
- 1730               	.LBE302:
- 1731               	.LBB304:
- 1732               	.LBB305:
- 1733               	.LBB306:
- 1734               	.LBB307:
- 1735               		.loc 2 447 0
- 1736               	/* #APP */
- 1737               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
- 1738 0526 7894      		sei
- 1739               	 ;  0 "" 2
- 1740               	/* #NOAPP */
- 1741               	.LBE307:
- 1742               	.LBE306:
- 1743               	.LBE305:
- 1744               	.LBE304:
- 1745               	.LBE298:
- 1746               	.LBE297:
- 146:W_M.c         ****   st->ul_centri = st->tempo;
- 1747               		.loc 1 146 0
- 1748 0528 9093 0000 		sts fsm_cen+1+1,r25
- 1749 052c 8093 0000 		sts fsm_cen+1,r24
- 147:W_M.c         ****   st->t_centri = 4000;
- 1750               		.loc 1 147 0
- 1751 0530 9093 0000 		sts fsm_cen+3+1,r25
- 1752 0534 8093 0000 		sts fsm_cen+3,r24
- 148:W_M.c         **** }
- 1753               		.loc 1 148 0
- 1754 0538 80EA      		ldi r24,lo8(-96)
- 1755 053a 9FE0      		ldi r25,lo8(15)
- 1756 053c 9093 0000 		sts fsm_cen+5+1,r25
- 1757 0540 8093 0000 		sts fsm_cen+5,r24
- 1758               	.LBE296:
- 1759               	.LBE295:
- 484:W_M.c         ****              // printf("Fim Enxágue\n");
- 1760               		.loc 1 484 0
- 1761 0544 80E0      		ldi r24,lo8(.LC20)
- 1762 0546 90E0      		ldi r25,hi8(.LC20)
- 1763 0548 9F93      		push r25
- 1764               	.LCFI106:
- 1765               		.cfi_def_cfa_offset 11
- 1766 054a 8F93      		push r24
- 1767               	.LCFI107:
- 1768               		.cfi_def_cfa_offset 12
- 1769 054c DF93      		push r29
- 1770               	.LCFI108:
- 1771               		.cfi_def_cfa_offset 13
- 1772 054e CF93      		push r28
- 1773               	.LCFI109:
- 1774               		.cfi_def_cfa_offset 14
- 1775 0550 0E94 0000 		call chprintf
- 486:W_M.c         ****              // printf("Inicio CENTRIFUGA\n");
- 1776               		.loc 1 486 0
- 1777 0554 2A98      		cbi 0x5,2
- 488:W_M.c         ****           }// fim "if" sensor vazio
- 1778               		.loc 1 488 0
- 1779 0556 80E0      		ldi r24,lo8(.LC21)
- 1780 0558 90E0      		ldi r25,hi8(.LC21)
- 1781 055a 9F93      		push r25
- 1782               	.LCFI110:
- 1783               		.cfi_def_cfa_offset 15
- 1784 055c 8F93      		push r24
- 1785               	.LCFI111:
- 1786               		.cfi_def_cfa_offset 16
- 1787 055e DF93      		push r29
- 1788               	.LCFI112:
- 1789               		.cfi_def_cfa_offset 17
- 1790 0560 CF93      		push r28
- 1791               	.LCFI113:
- 1792               		.cfi_def_cfa_offset 18
- 1793 0562 0E94 0000 		call chprintf
- 1794 0566 8DB7      		in r24,__SP_L__
- 1795 0568 9EB7      		in r25,__SP_H__
- 1796 056a 0896      		adiw r24,8
- 1797 056c 0FB6      		in __tmp_reg__,__SREG__
- 1798 056e F894      		cli
- 1799 0570 9EBF      		out __SP_H__,r25
- 1800 0572 0FBE      		out __SREG__,__tmp_reg__
- 1801 0574 8DBF      		out __SP_L__,r24
- 1802               	.LCFI114:
- 1803               		.cfi_def_cfa_offset 10
- 1804 0576 00C0      		rjmp .L20
- 1805               	.L76:
- 400:W_M.c         ****               fsm_lvg.lvg = ESVAZIA_LVG;
- 1806               		.loc 1 400 0
- 1807 0578 1092 0000 		sts fsm_lvg+5+1,__zero_reg__
- 1808 057c 1092 0000 		sts fsm_lvg+5,__zero_reg__
- 401:W_M.c         ****               chprintf((BaseSequentialStream *)&SD1, "Esvazia Lavagem \n\r");
- 1809               		.loc 1 401 0
- 1810 0580 8AE0      		ldi r24,lo8(10)
- 1811 0582 8093 0000 		sts fsm_lvg,r24
- 402:W_M.c         ****               // printf("Fim giros Lavagem\n");
- 1812               		.loc 1 402 0
- 1813 0586 80E0      		ldi r24,lo8(.LC14)
- 1814 0588 90E0      		ldi r25,hi8(.LC14)
- 1815 058a 00C0      		rjmp .L71
- 1816               		.cfi_endproc
- 1817               	.LFE175:
- 1819               		.section	.rodata.str1.1
- 1820               	.LC22:
- 1821 0168 494E 4943 		.string	"INICIO M\303\201QUINA\n\r"
- 1821      494F 204D 
- 1821      C381 5155 
- 1821      494E 410A 
- 1821      0D00 
- 1822               	.LC23:
- 1823 017a 2564 200A 		.string	"%d \n\r"
- 1823      0D00 
- 1824               		.section	.text.startup.main,"ax",@progbits
- 1825               	.global	main
- 1827               	main:
- 1828               	.LFB176:
- 532:W_M.c         **** 
- 533:W_M.c         **** 
- 534:W_M.c         **** int main(void) {
- 1829               		.loc 1 534 0
- 1830               		.cfi_startproc
- 1831               	/* prologue: function */
- 1832               	/* frame size = 0 */
- 1833               	/* stack size = 0 */
- 1834               	.L__stack_usage = 0
- 535:W_M.c         ****   halInit();
- 1835               		.loc 1 535 0
- 1836 0000 0E94 0000 		call halInit
- 1837               	.LVL34:
- 536:W_M.c         ****   chSysInit();
- 1838               		.loc 1 536 0
- 1839 0004 0E94 0000 		call chSysInit
- 1840               	.LVL35:
- 537:W_M.c         **** 
- 538:W_M.c         ****   sdStart(&SD1, 0);
- 1841               		.loc 1 538 0
- 1842 0008 60E0      		ldi r22,0
- 1843 000a 70E0      		ldi r23,0
- 1844 000c 80E0      		ldi r24,lo8(SD1)
- 1845 000e 90E0      		ldi r25,hi8(SD1)
- 1846 0010 0E94 0000 		call sdStart
- 1847               	.LVL36:
- 539:W_M.c         ****   chprintf((BaseSequentialStream *)&SD1, "INICIO MÁQUINA\n\r");
- 1848               		.loc 1 539 0
- 1849 0014 80E0      		ldi r24,lo8(.LC22)
- 1850 0016 90E0      		ldi r25,hi8(.LC22)
- 1851 0018 9F93      		push r25
- 1852               	.LCFI115:
- 1853               		.cfi_def_cfa_offset 3
- 1854 001a 8F93      		push r24
- 1855               	.LCFI116:
- 1856               		.cfi_def_cfa_offset 4
- 1857 001c C0E0      		ldi r28,lo8(SD1)
- 1858 001e D0E0      		ldi r29,hi8(SD1)
- 1859 0020 DF93      		push r29
- 1860               	.LCFI117:
- 1861               		.cfi_def_cfa_offset 5
- 1862 0022 CF93      		push r28
- 1863               	.LCFI118:
- 1864               		.cfi_def_cfa_offset 6
- 1865 0024 0E94 0000 		call chprintf
- 1866               	.LVL37:
- 540:W_M.c         ****   starting();
- 1867               		.loc 1 540 0
- 1868 0028 0E94 0000 		call starting
- 1869               	.LVL38:
- 541:W_M.c         ****   lavar = PARADA;
- 1870               		.loc 1 541 0
- 1871 002c 1092 0000 		sts lavar,__zero_reg__
- 1872               	.LVL39:
- 1873               	.LBB308:
- 1874               	.LBB309:
- 118:W_M.c         **** }
- 1875               		.loc 1 118 0
- 1876 0030 1092 0000 		sts fsm_prd+1,__zero_reg__
- 1877 0034 1092 0000 		sts fsm_prd,__zero_reg__
- 1878               	.LVL40:
- 1879               	.LBE309:
- 1880               	.LBE308:
- 542:W_M.c         ****   fsm_parada_init(&fsm_prd);
- 543:W_M.c         ****   chprintf((BaseSequentialStream *)&SD1, "%d \n\r", lavar);
- 1881               		.loc 1 543 0
- 1882 0038 1F92      		push __zero_reg__
- 1883               	.LCFI119:
- 1884               		.cfi_def_cfa_offset 7
- 1885 003a 1F92      		push __zero_reg__
- 1886               	.LCFI120:
- 1887               		.cfi_def_cfa_offset 8
- 1888 003c 80E0      		ldi r24,lo8(.LC23)
- 1889 003e 90E0      		ldi r25,hi8(.LC23)
- 1890 0040 9F93      		push r25
- 1891               	.LCFI121:
- 1892               		.cfi_def_cfa_offset 9
- 1893 0042 8F93      		push r24
- 1894               	.LCFI122:
- 1895               		.cfi_def_cfa_offset 10
- 1896 0044 DF93      		push r29
- 1897               	.LCFI123:
- 1898               		.cfi_def_cfa_offset 11
- 1899 0046 CF93      		push r28
- 1900               	.LCFI124:
- 1901               		.cfi_def_cfa_offset 12
- 1902 0048 0E94 0000 		call chprintf
- 1903               	.LVL41:
- 1904 004c 8DB7      		in r24,__SP_L__
- 1905 004e 9EB7      		in r25,__SP_H__
- 1906 0050 0A96      		adiw r24,10
- 1907 0052 0FB6      		in __tmp_reg__,__SREG__
- 1908 0054 F894      		cli
- 1909 0056 9EBF      		out __SP_H__,r25
- 1910 0058 0FBE      		out __SREG__,__tmp_reg__
- 1911 005a 8DBF      		out __SP_L__,r24
- 1912               	.LCFI125:
- 1913               		.cfi_def_cfa_offset 2
- 1914               	.L78:
+ 456:W_M.c         **** 
+ 457:W_M.c         ****     case(ENXAGUE):
+ 458:W_M.c         ****     palClearPad(IOPORT2, MOLHO_ID);
+ 459:W_M.c         ****     palClearPad(IOPORT2, LAVAGEM_ID);
+ 460:W_M.c         ****     palSetPad(IOPORT2, ENXAGUE_ID);
+ 461:W_M.c         ****     palClearPad(IOPORT2, CENTRI_ID);
+ 462:W_M.c         ****     palClearPad(IOPORT4, PARADA_ID);
+ 463:W_M.c         **** 
+ 464:W_M.c         ****       switch(fsm_exg.exg){
+ 465:W_M.c         ****         case(ENCHER_EXG):
+ 466:W_M.c         ****           if(lavar == EMERGENCIA){
+ 467:W_M.c         ****             break;
+ 468:W_M.c         ****           } // verificar emergência
+ 469:W_M.c         ****           // printf("DEBUG: Super ENXAGUE - estado ENCHER_EXG\n");
+ 470:W_M.c         ****           palSetPad(IOPORT2, ENCHE_ID);
+ 471:W_M.c         ****           if(palReadPad(IOPORT4, SEN_CHEIO) == PAL_HIGH){
+ 472:W_M.c         ****             // printf("Sensor Cheio: ON\n");
+ 473:W_M.c         ****             palClearPad(IOPORT2, ENCHE_ID);
+ 474:W_M.c         ****             fsm_exg.exg = RODAR_EXG;
+ 475:W_M.c         **** 
+ 476:W_M.c         ****           } // fim "if" Sensor cheio
+ 477:W_M.c         ****           break;
+ 478:W_M.c         **** 
+ 479:W_M.c         ****         case(RODAR_EXG):
+ 480:W_M.c         ****           if(lavar == EMERGENCIA){
+ 481:W_M.c         ****             break;
+ 482:W_M.c         ****           } // verificar emergência
+ 483:W_M.c         ****           // printf("DEBUG: Super ENXAGUE - estado RODAR_EXG\n");
+ 484:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Rodar Enxague\n\r");
+ 485:W_M.c         ****           spinning(fsm_exg.t_giro);
+ 486:W_M.c         ****           fsm_exg.exg = ESVAZIA_EXG;
+ 487:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Esvazia Enxague\n\r");
+ 488:W_M.c         **** 
+ 489:W_M.c         ****         break;
+ 490:W_M.c         **** 
+ 491:W_M.c         ****         case(ESVAZIA_EXG):
+ 492:W_M.c         ****           if(lavar == EMERGENCIA){
+ 493:W_M.c         ****             break;
+ 494:W_M.c         ****           } //  verificar a emergência
+ 495:W_M.c         **** 
+ 496:W_M.c         ****           // printf("DEBUG: Super ENXAGUE - estados ESVAZIA_EXG\n");
+ 497:W_M.c         ****           palSetPad(IOPORT2, SECA_ID);
+ 498:W_M.c         ****           if(palReadPad(IOPORT4, SEN_VAZIO) == PAL_HIGH){
+ 499:W_M.c         ****              // printf("Sensor Vazio: ON\n");
+ 500:W_M.c         ****              palClearPad(IOPORT2, SECA_ID);
+ 501:W_M.c         ****              lavar = CENTRIFUGA;
+ 502:W_M.c         ****              fsm_centrifuga_init(&fsm_cen);
+ 503:W_M.c         ****              chprintf((BaseSequentialStream *)&SD1, "Fim Enxague\n\r");
+ 504:W_M.c         ****              // printf("Fim Enxágue\n");
+ 505:W_M.c         ****              palClearPad(IOPORT2, ENXAGUE_ID);
+ 506:W_M.c         ****              // printf("Inicio CENTRIFUGA\n");
+ 507:W_M.c         ****              chprintf((BaseSequentialStream *)&SD1, "Inicio Centrifuga\n\r");
+ 508:W_M.c         ****           }// fim "if" sensor vazio
+ 509:W_M.c         ****         break;
+ 510:W_M.c         ****       } // fim switch ENXAGUE
+ 511:W_M.c         ****       break;
+ 512:W_M.c         **** 
+ 513:W_M.c         **** 
+ 514:W_M.c         ****       case(CENTRIFUGA):
+ 515:W_M.c         ****       // printf("Inicio Centrifuga\n");
+ 516:W_M.c         ****       palClearPad(IOPORT2, MOLHO_ID);
+ 517:W_M.c         ****       palClearPad(IOPORT2, LAVAGEM_ID);
+ 518:W_M.c         ****       palClearPad(IOPORT2, ENXAGUE_ID);
+ 519:W_M.c         ****       palSetPad(IOPORT2, CENTRI_ID);
+ 520:W_M.c         ****       palClearPad(IOPORT4, PARADA_ID);
+ 521:W_M.c         **** 
+ 522:W_M.c         ****         switch(fsm_cen.cen){
+ 523:W_M.c         ****           case(GIRA_R_CENTRI):
+ 524:W_M.c         ****             if(lavar == EMERGENCIA){
+ 525:W_M.c         ****               break;
+ 526:W_M.c         ****             }
+ 527:W_M.c         ****             palClearPad(IOPORT3, MOTOR_DIR);
+ 528:W_M.c         ****             // printf("DEBUG: Super CENTRIFUGA - estado GIRA_R_CENTRI\n");
+ 529:W_M.c         ****             fsm_cen.tempo = chVTGetSystemTime();
+ 530:W_M.c         ****             // printf("Super:%d - estado:%d\n ",lavar, fsm_cen.cen);
+ 531:W_M.c         ****             // printf("CENTRIFUGA: %ld - %ld\n", fsm_cen.instante, fsm_cen.ul_espera);
+ 532:W_M.c         ****             if(fsm_cen.tempo - fsm_cen.ul_centri > TIME_MS2I(fsm_cen.t_centri)){
+ 533:W_M.c         ****               palSetPad(IOPORT3, MOTOR_DIR);
+ 534:W_M.c         ****               lavar = PARADA;
+ 535:W_M.c         ****               fsm_parada_init(&fsm_prd);
+ 536:W_M.c         ****               palClearPad(IOPORT2, CENTRI_ID);
+ 537:W_M.c         ****               chprintf((BaseSequentialStream *)&SD1, "FIM DO PROCESSO\n\r");
+ 538:W_M.c         ****               // printf("FIM DA Máquina\n");
+ 539:W_M.c         ****             }
+ 540:W_M.c         ****           break; // break de GIRA_R_CENTRI
+ 541:W_M.c         ****         } // fim switch CENTRIFUGA
+ 542:W_M.c         ****     break; // break de centrífuga.
+ 543:W_M.c         **** 
  544:W_M.c         **** 
- 545:W_M.c         ****   while(1){
- 546:W_M.c         ****     lavar_maquina();
- 1915               		.loc 1 546 0 discriminator 1
- 1916 005c 0E94 0000 		call lavar_maquina
- 1917               	.LVL42:
- 1918 0060 00C0      		rjmp .L78
- 1919               		.cfi_endproc
- 1920               	.LFE176:
- 1922               		.comm	fsm_cen,7,1
- 1923               		.comm	fsm_exg,3,1
- 1924               		.comm	fsm_lvg,11,1
- 1925               		.comm	fsm_ml,3,1
- 1926               		.comm	fsm_prd,2,1
- 1927               	.global	lavar
- 1928               		.section	.bss.lavar,"aw",@nobits
- 1931               	lavar:
- 1932 0000 00        		.zero	1
- 1933               		.text
- 1934               	.Letext0:
- 1935               		.file 4 "/usr/lib/avr/include/stdint.h"
- 1936               		.file 5 "/usr/lib/gcc/avr/5.4.0/include/stddef.h"
- 1937               		.file 6 "../../../os/common/ports/AVR/compilers/GCC/chtypes.h"
- 1938               		.file 7 "../../../os/rt/include/chsystypes.h"
- 1939               		.file 8 "../../../os/rt/include/chschd.h"
- 1940               		.file 9 "../../../os/rt/include/chtime.h"
- 1941               		.file 10 "../../../os/rt/include/chsem.h"
- 1942               		.file 11 "../../../os/rt/include/chmtx.h"
- 1943               		.file 12 "../../../os/rt/include/chevents.h"
- 1944               		.file 13 "../../../os/hal/include/hal_streams.h"
- 1945               		.file 14 "../../../os/hal/include/hal_queues.h"
- 1946               		.file 15 "../../../os/hal/ports/AVR/MEGA/LLD/GPIOv1/hal_pal_lld.h"
- 1947               		.file 16 "../../../os/hal/include/hal_serial.h"
- 1948               		.file 17 "../../../os/rt/include/chsys.h"
- 1949               		.file 18 "../../../os/hal/ports/AVR/MEGA/LLD/USARTv1/hal_serial_lld.h"
- 1950               		.file 19 "../../../os/hal/lib/streams/chprintf.h"
- 1951               		.file 20 "../../../os/hal/include/hal.h"
+ 545:W_M.c         ****     case(EMERGENCIA):
+ 546:W_M.c         ****       // printf("PORTA ABERTA. ERRO !!\n");
+ 547:W_M.c         ****       while(1);
+ 548:W_M.c         **** 
+ 549:W_M.c         ****     break; // break de emergência
+ 550:W_M.c         ****   } // fim switch máquina principal
+ 551:W_M.c         **** } // fim função da máquina principal.
+ 848               		.loc 1 551 0
+ 849 0102 DF91      		pop r29
+ 850 0104 CF91      		pop r28
+ 851 0106 1F91      		pop r17
+ 852 0108 0F91      		pop r16
+ 853 010a FF90      		pop r15
+ 854 010c EF90      		pop r14
+ 855 010e DF90      		pop r13
+ 856 0110 CF90      		pop r12
+ 857 0112 BF90      		pop r11
+ 858 0114 AF90      		pop r10
+ 859 0116 9F90      		pop r9
+ 860 0118 8F90      		pop r8
+ 861 011a 7F90      		pop r7
+ 862 011c 6F90      		pop r6
+ 863 011e 5F90      		pop r5
+ 864 0120 4F90      		pop r4
+ 865 0122 3F90      		pop r3
+ 866 0124 2F90      		pop r2
+ 867 0126 0895      		ret
+ 868               	.L26:
+ 516:W_M.c         ****       palClearPad(IOPORT2, LAVAGEM_ID);
+ 869               		.loc 1 516 0
+ 870 0128 2898      		cbi 0x5,0
+ 517:W_M.c         ****       palClearPad(IOPORT2, ENXAGUE_ID);
+ 871               		.loc 1 517 0
+ 872 012a 2998      		cbi 0x5,1
+ 518:W_M.c         ****       palSetPad(IOPORT2, CENTRI_ID);
+ 873               		.loc 1 518 0
+ 874 012c 2A98      		cbi 0x5,2
+ 519:W_M.c         ****       palClearPad(IOPORT4, PARADA_ID);
+ 875               		.loc 1 519 0
+ 876 012e 2B9A      		sbi 0x5,3
+ 520:W_M.c         **** 
+ 877               		.loc 1 520 0
+ 878 0130 5F98      		cbi 0xb,7
+ 522:W_M.c         ****           case(GIRA_R_CENTRI):
+ 879               		.loc 1 522 0
+ 880 0132 8091 0000 		lds r24,fsm_cen
+ 881 0136 8E30      		cpi r24,lo8(14)
+ 882 0138 01F4      		brne .L20
+ 527:W_M.c         ****             // printf("DEBUG: Super CENTRIFUGA - estado GIRA_R_CENTRI\n");
+ 883               		.loc 1 527 0
+ 884 013a 4098      		cbi 0x8,0
+ 885               	.LBB209:
+ 886               	.LBB210:
+ 887               	.LBB211:
+ 888               	.LBB212:
+ 889               	.LBB213:
+ 437:../../../os/common/ports/AVR/chcore.h **** }
+ 890               		.loc 2 437 0
+ 891               	/* #APP */
+ 892               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
+ 893 013c F894      		cli
+ 894               	 ;  0 "" 2
+ 895               	/* #NOAPP */
+ 896               	.LBE213:
+ 897               	.LBE212:
+ 898               	.LBE211:
+ 899               	.LBB214:
+ 900               	.LBB215:
+ 901               		.loc 3 118 0
+ 902 013e 8091 0000 		lds r24,ch+19
+ 903 0142 9091 0000 		lds r25,ch+19+1
+ 904               	.LBE215:
+ 905               	.LBE214:
+ 906               	.LBB216:
+ 907               	.LBB217:
+ 908               	.LBB218:
+ 909               	.LBB219:
+ 910               		.loc 2 447 0
+ 911               	/* #APP */
+ 912               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
+ 913 0146 7894      		sei
+ 914               	 ;  0 "" 2
+ 915               	/* #NOAPP */
+ 916               	.LBE219:
+ 917               	.LBE218:
+ 918               	.LBE217:
+ 919               	.LBE216:
+ 920               	.LBE210:
+ 921               	.LBE209:
+ 529:W_M.c         ****             // printf("Super:%d - estado:%d\n ",lavar, fsm_cen.cen);
+ 922               		.loc 1 529 0
+ 923 0148 9093 0000 		sts fsm_cen+1+1,r25
+ 924 014c 8093 0000 		sts fsm_cen+1,r24
+ 532:W_M.c         ****               palSetPad(IOPORT3, MOTOR_DIR);
+ 925               		.loc 1 532 0
+ 926 0150 A091 0000 		lds r26,fsm_cen+5
+ 927 0154 B091 0000 		lds r27,fsm_cen+5+1
+ 928 0158 2091 0000 		lds r18,fsm_cen+3
+ 929 015c 3091 0000 		lds r19,fsm_cen+3+1
+ 930 0160 EC01      		movw r28,r24
+ 931 0162 C21B      		sub r28,r18
+ 932 0164 D30B      		sbc r29,r19
+ 933 0166 28E0      		ldi r18,lo8(8)
+ 934 0168 3DE3      		ldi r19,lo8(61)
+ 935 016a 0E94 0000 		call __usmulhisi3
+ 936 016e 6951      		subi r22,25
+ 937 0170 7C4F      		sbci r23,-4
+ 938 0172 8F4F      		sbci r24,-1
+ 939 0174 9F4F      		sbci r25,-1
+ 940 0176 28EE      		ldi r18,lo8(-24)
+ 941 0178 33E0      		ldi r19,lo8(3)
+ 942 017a 40E0      		ldi r20,0
+ 943 017c 50E0      		ldi r21,0
+ 944 017e 0E94 0000 		call __udivmodsi4
+ 945 0182 2C17      		cp r18,r28
+ 946 0184 3D07      		cpc r19,r29
+ 947 0186 00F0      		brlo .+2
+ 948 0188 00C0      		rjmp .L20
+ 533:W_M.c         ****               lavar = PARADA;
+ 949               		.loc 1 533 0
+ 950 018a 409A      		sbi 0x8,0
+ 534:W_M.c         ****               fsm_parada_init(&fsm_prd);
+ 951               		.loc 1 534 0
+ 952 018c 1092 0000 		sts lavar,__zero_reg__
+ 953               	.LBB220:
+ 954               	.LBB221:
+ 118:W_M.c         **** }
+ 955               		.loc 1 118 0
+ 956 0190 1092 0000 		sts fsm_prd+1,__zero_reg__
+ 957 0194 1092 0000 		sts fsm_prd,__zero_reg__
+ 958               	.LBE221:
+ 959               	.LBE220:
+ 536:W_M.c         ****               chprintf((BaseSequentialStream *)&SD1, "FIM DO PROCESSO\n\r");
+ 960               		.loc 1 536 0
+ 961 0198 2B98      		cbi 0x5,3
+ 537:W_M.c         ****               // printf("FIM DA Máquina\n");
+ 962               		.loc 1 537 0
+ 963 019a 80E0      		ldi r24,lo8(.LC27)
+ 964 019c 90E0      		ldi r25,hi8(.LC27)
+ 965 019e 00C0      		rjmp .L82
+ 966               	.L24:
+ 275:W_M.c         ****       chprintf((BaseSequentialStream *)&SD1, "Modo inicial: Molho\n\r");
+ 967               		.loc 1 275 0
+ 968 01a0 80E0      		ldi r24,lo8(.LC5)
+ 969 01a2 90E0      		ldi r25,hi8(.LC5)
+ 970 01a4 9F93      		push r25
+ 971               	.LCFI63:
+ 972               		.cfi_def_cfa_offset 21
+ 973 01a6 8F93      		push r24
+ 974               	.LCFI64:
+ 975               		.cfi_def_cfa_offset 22
+ 976 01a8 C0E0      		ldi r28,lo8(SD1)
+ 977 01aa D0E0      		ldi r29,hi8(SD1)
+ 978 01ac DF93      		push r29
+ 979               	.LCFI65:
+ 980               		.cfi_def_cfa_offset 23
+ 981 01ae CF93      		push r28
+ 982               	.LCFI66:
+ 983               		.cfi_def_cfa_offset 24
+ 984 01b0 0E94 0000 		call chprintf
+ 276:W_M.c         ****       // scanf("%d", &fsm_prd.select_init);
+ 985               		.loc 1 276 0
+ 986 01b4 80E0      		ldi r24,lo8(.LC6)
+ 987 01b6 90E0      		ldi r25,hi8(.LC6)
+ 988 01b8 9F93      		push r25
+ 989               	.LCFI67:
+ 990               		.cfi_def_cfa_offset 25
+ 991 01ba 8F93      		push r24
+ 992               	.LCFI68:
+ 993               		.cfi_def_cfa_offset 26
+ 994 01bc DF93      		push r29
+ 995               	.LCFI69:
+ 996               		.cfi_def_cfa_offset 27
+ 997 01be CF93      		push r28
+ 998               	.LCFI70:
+ 999               		.cfi_def_cfa_offset 28
+ 1000 01c0 0E94 0000 		call chprintf
+ 1001 01c4 8DB7      		in r24,__SP_L__
+ 1002 01c6 9EB7      		in r25,__SP_H__
+ 1003 01c8 0896      		adiw r24,8
+ 1004 01ca 0FB6      		in __tmp_reg__,__SREG__
+ 1005 01cc F894      		cli
+ 1006 01ce 9EBF      		out __SP_H__,r25
+ 1007 01d0 0FBE      		out __SREG__,__tmp_reg__
+ 1008 01d2 8DBF      		out __SP_L__,r24
+ 1009               	.LCFI71:
+ 1010               		.cfi_def_cfa_offset 20
+ 316:W_M.c         ****           palClearPad(IOPORT2, ENXAGUE_ID);
+ 1011               		.loc 1 316 0
+ 1012 01d4 00E0      		ldi r16,lo8(.LC9)
+ 1013 01d6 10E0      		ldi r17,hi8(.LC9)
+ 305:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Modo inicial: Enxague\n\r");
+ 1014               		.loc 1 305 0
+ 1015 01d8 82E0      		ldi r24,lo8(2)
+ 1016 01da 282E      		mov r2,r24
+ 1017 01dc 312C      		mov r3,__zero_reg__
+ 306:W_M.c         ****           palClearPad(IOPORT2, LAVAGEM_ID);
+ 1018               		.loc 1 306 0
+ 1019 01de 90E0      		ldi r25,lo8(.LC8)
+ 1020 01e0 492E      		mov r4,r25
+ 1021 01e2 90E0      		ldi r25,hi8(.LC8)
+ 1022 01e4 592E      		mov r5,r25
+ 1023               	.LBB222:
+ 1024               	.LBB223:
+ 124:W_M.c         **** }
+ 1025               		.loc 1 124 0
+ 1026 01e6 20ED      		ldi r18,lo8(-48)
+ 1027 01e8 622E      		mov r6,r18
+ 1028 01ea 27E0      		ldi r18,lo8(7)
+ 1029 01ec 722E      		mov r7,r18
+ 1030               	.LBE223:
+ 1031               	.LBE222:
+ 1032               	.LBB225:
+ 1033               	.LBB226:
+ 131:W_M.c         ****   st->t_giros = 2400;
+ 1034               		.loc 1 131 0
+ 1035 01ee 38EE      		ldi r19,lo8(-24)
+ 1036 01f0 832E      		mov r8,r19
+ 1037 01f2 33E0      		ldi r19,lo8(3)
+ 1038 01f4 932E      		mov r9,r19
+ 132:W_M.c         ****   st->instante = chVTGetSystemTime();
+ 1039               		.loc 1 132 0
+ 1040 01f6 40E6      		ldi r20,lo8(96)
+ 1041 01f8 A42E      		mov r10,r20
+ 1042 01fa 49E0      		ldi r20,lo8(9)
+ 1043 01fc B42E      		mov r11,r20
+ 1044               	.LBE226:
+ 1045               	.LBE225:
+ 295:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Modo inicial: Lavagem \n\r");
+ 1046               		.loc 1 295 0
+ 1047 01fe CC24      		clr r12
+ 1048 0200 C394      		inc r12
+ 1049 0202 D12C      		mov r13,__zero_reg__
+ 296:W_M.c         ****           palClearPad(IOPORT2, MOLHO_ID);
+ 1050               		.loc 1 296 0
+ 1051 0204 60E0      		ldi r22,lo8(.LC7)
+ 1052 0206 E62E      		mov r14,r22
+ 1053 0208 60E0      		ldi r22,hi8(.LC7)
+ 1054 020a F62E      		mov r15,r22
+ 1055 020c 00C0      		rjmp .L39
+ 1056               	.L86:
+ 280:W_M.c         ****           palSetPad(IOPORT2, MOLHO_ID);
+ 1057               		.loc 1 280 0
+ 1058 020e 5F9A      		sbi 0xb,7
+ 281:W_M.c         ****           palSetPad(IOPORT2, LAVAGEM_ID);
+ 1059               		.loc 1 281 0
+ 1060 0210 289A      		sbi 0x5,0
+ 282:W_M.c         ****           palSetPad(IOPORT2, ENXAGUE_ID);
+ 1061               		.loc 1 282 0
+ 1062 0212 299A      		sbi 0x5,1
+ 283:W_M.c         ****           palSetPad(IOPORT2, CENTRI_ID);
+ 1063               		.loc 1 283 0
+ 1064 0214 2A9A      		sbi 0x5,2
+ 284:W_M.c         ****           lavar = MOLHO;
+ 1065               		.loc 1 284 0
+ 1066 0216 2B9A      		sbi 0x5,3
+ 285:W_M.c         ****           fsm_molho_init(&fsm_ml);
+ 1067               		.loc 1 285 0
+ 1068 0218 81E0      		ldi r24,lo8(1)
+ 1069 021a 8093 0000 		sts lavar,r24
+ 1070               	.LBB239:
+ 1071               	.LBB224:
+ 123:W_M.c         ****   st->t_giro = 2000;
+ 1072               		.loc 1 123 0
+ 1073 021e 86E0      		ldi r24,lo8(6)
+ 1074 0220 8093 0000 		sts fsm_ml,r24
+ 124:W_M.c         **** }
+ 1075               		.loc 1 124 0
+ 1076 0224 7092 0000 		sts fsm_ml+1+1,r7
+ 1077 0228 6092 0000 		sts fsm_ml+1,r6
+ 1078               	.LBE224:
+ 1079               	.LBE239:
+ 289:W_M.c         ****           chThdSleepMilliseconds(20); // Debouncing time
+ 1080               		.loc 1 289 0
+ 1081 022c 4E99      		sbic 0x9,6
+ 1082 022e 00C0      		rjmp .L84
+ 1083               	.L36:
+ 326:W_M.c         ****           chThdSleepMilliseconds(20); // Debouncing time
+ 1084               		.loc 1 326 0
+ 1085 0230 4D99      		sbic 0x9,5
+ 1086 0232 00C0      		rjmp .L85
+ 1087               	.L39:
+ 279:W_M.c         ****           palSetPad(IOPORT4, PARADA_ID);
+ 1088               		.loc 1 279 0
+ 1089 0234 8091 0000 		lds r24,fsm_prd
+ 1090 0238 9091 0000 		lds r25,fsm_prd+1
+ 1091 023c 0097      		sbiw r24,0
+ 1092 023e 01F0      		breq .L86
+ 1093               	.L29:
+ 300:W_M.c         ****           chThdSleepMilliseconds(20); // Debouncing time
+ 1094               		.loc 1 300 0
+ 1095 0240 8130      		cpi r24,1
+ 1096 0242 9105      		cpc r25,__zero_reg__
+ 1097 0244 01F4      		brne .+2
+ 1098 0246 00C0      		rjmp .L87
+ 1099               	.L32:
+ 310:W_M.c         ****           chThdSleepMilliseconds(20); // Debouncing time
+ 1100               		.loc 1 310 0
+ 1101 0248 8230      		cpi r24,2
+ 1102 024a 9105      		cpc r25,__zero_reg__
+ 1103 024c 01F4      		brne .L34
+ 310:W_M.c         ****           chThdSleepMilliseconds(20); // Debouncing time
+ 1104               		.loc 1 310 0 is_stmt 0 discriminator 1
+ 1105 024e 4E9B      		sbis 0x9,6
+ 1106 0250 00C0      		rjmp .L36
+ 311:W_M.c         ****           while(palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH);
+ 1107               		.loc 1 311 0 is_stmt 1
+ 1108 0252 89E3      		ldi r24,lo8(57)
+ 1109 0254 91E0      		ldi r25,lo8(1)
+ 1110 0256 0E94 0000 		call chThdSleep
+ 1111               	.L37:
+ 312:W_M.c         ****           lavar = CENTRIFUGA;
+ 1112               		.loc 1 312 0 discriminator 1
+ 1113 025a 4E99      		sbic 0x9,6
+ 1114 025c 00C0      		rjmp .L37
+ 313:W_M.c         ****           fsm_centrifuga_init(&fsm_cen);
+ 1115               		.loc 1 313 0
+ 1116 025e 84E0      		ldi r24,lo8(4)
+ 1117 0260 8093 0000 		sts lavar,r24
+ 1118               	.LBB240:
+ 1119               	.LBB241:
+ 145:W_M.c         ****   st->tempo = chVTGetSystemTime();
+ 1120               		.loc 1 145 0
+ 1121 0264 8EE0      		ldi r24,lo8(14)
+ 1122 0266 8093 0000 		sts fsm_cen,r24
+ 1123               	.LBB242:
+ 1124               	.LBB243:
+ 1125               	.LBB244:
+ 1126               	.LBB245:
+ 1127               	.LBB246:
+ 437:../../../os/common/ports/AVR/chcore.h **** }
+ 1128               		.loc 2 437 0
+ 1129               	/* #APP */
+ 1130               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
+ 1131 026a F894      		cli
+ 1132               	 ;  0 "" 2
+ 1133               	/* #NOAPP */
+ 1134               	.LBE246:
+ 1135               	.LBE245:
+ 1136               	.LBE244:
+ 1137               	.LBB247:
+ 1138               	.LBB248:
+ 1139               		.loc 3 118 0
+ 1140 026c 8091 0000 		lds r24,ch+19
+ 1141 0270 9091 0000 		lds r25,ch+19+1
+ 1142               	.LBE248:
+ 1143               	.LBE247:
+ 1144               	.LBB249:
+ 1145               	.LBB250:
+ 1146               	.LBB251:
+ 1147               	.LBB252:
+ 1148               		.loc 2 447 0
+ 1149               	/* #APP */
+ 1150               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
+ 1151 0274 7894      		sei
+ 1152               	 ;  0 "" 2
+ 1153               	/* #NOAPP */
+ 1154               	.LBE252:
+ 1155               	.LBE251:
+ 1156               	.LBE250:
+ 1157               	.LBE249:
+ 1158               	.LBE243:
+ 1159               	.LBE242:
+ 146:W_M.c         ****   st->ul_centri = st->tempo;
+ 1160               		.loc 1 146 0
+ 1161 0276 9093 0000 		sts fsm_cen+1+1,r25
+ 1162 027a 8093 0000 		sts fsm_cen+1,r24
+ 147:W_M.c         ****   st->t_centri = 4000;
+ 1163               		.loc 1 147 0
+ 1164 027e 9093 0000 		sts fsm_cen+3+1,r25
+ 1165 0282 8093 0000 		sts fsm_cen+3,r24
+ 148:W_M.c         **** }
+ 1166               		.loc 1 148 0
+ 1167 0286 80EA      		ldi r24,lo8(-96)
+ 1168 0288 9FE0      		ldi r25,lo8(15)
+ 1169 028a 9093 0000 		sts fsm_cen+5+1,r25
+ 1170 028e 8093 0000 		sts fsm_cen+5,r24
+ 1171               	.LBE241:
+ 1172               	.LBE240:
+ 315:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Modo inicial: Centrifuga\n\r");
+ 1173               		.loc 1 315 0
+ 1174 0292 83E0      		ldi r24,lo8(3)
+ 1175 0294 90E0      		ldi r25,0
+ 1176 0296 9093 0000 		sts fsm_prd+1,r25
+ 1177 029a 8093 0000 		sts fsm_prd,r24
+ 316:W_M.c         ****           palClearPad(IOPORT2, ENXAGUE_ID);
+ 1178               		.loc 1 316 0
+ 1179 029e 1F93      		push r17
+ 1180               	.LCFI72:
+ 1181               		.cfi_def_cfa_offset 21
+ 1182 02a0 0F93      		push r16
+ 1183               	.LCFI73:
+ 1184               		.cfi_def_cfa_offset 22
+ 1185 02a2 DF93      		push r29
+ 1186               	.LCFI74:
+ 1187               		.cfi_def_cfa_offset 23
+ 1188 02a4 CF93      		push r28
+ 1189               	.LCFI75:
+ 1190               		.cfi_def_cfa_offset 24
+ 1191 02a6 0E94 0000 		call chprintf
+ 317:W_M.c         ****           // printf("Inicio ENXAGUE\n");
+ 1192               		.loc 1 317 0
+ 1193 02aa 2A98      		cbi 0x5,2
+ 1194 02ac 8091 0000 		lds r24,fsm_prd
+ 1195 02b0 9091 0000 		lds r25,fsm_prd+1
+ 1196 02b4 0F90      		pop __tmp_reg__
+ 1197 02b6 0F90      		pop __tmp_reg__
+ 1198 02b8 0F90      		pop __tmp_reg__
+ 1199 02ba 0F90      		pop __tmp_reg__
+ 1200               	.LCFI76:
+ 1201               		.cfi_def_cfa_offset 20
+ 1202               	.L34:
+ 320:W_M.c         ****           chThdSleepMilliseconds(20); // Debouncing time
+ 1203               		.loc 1 320 0
+ 1204 02bc 0397      		sbiw r24,3
+ 1205 02be 01F0      		breq .+2
+ 1206 02c0 00C0      		rjmp .L36
+ 320:W_M.c         ****           chThdSleepMilliseconds(20); // Debouncing time
+ 1207               		.loc 1 320 0 is_stmt 0 discriminator 1
+ 1208 02c2 4E9B      		sbis 0x9,6
+ 1209 02c4 00C0      		rjmp .L36
+ 321:W_M.c         ****           while(palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH);
+ 1210               		.loc 1 321 0 is_stmt 1
+ 1211 02c6 89E3      		ldi r24,lo8(57)
+ 1212 02c8 91E0      		ldi r25,lo8(1)
+ 1213 02ca 0E94 0000 		call chThdSleep
+ 1214               	.L38:
+ 322:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Modo inicial: Molho\n\r");
+ 1215               		.loc 1 322 0 discriminator 1
+ 1216 02ce 4E99      		sbic 0x9,6
+ 1217 02d0 00C0      		rjmp .L38
+ 323:W_M.c         ****           fsm_prd.select_init = 0;
+ 1218               		.loc 1 323 0
+ 1219 02d2 80E0      		ldi r24,lo8(.LC6)
+ 1220 02d4 90E0      		ldi r25,hi8(.LC6)
+ 1221 02d6 9F93      		push r25
+ 1222               	.LCFI77:
+ 1223               		.cfi_def_cfa_offset 21
+ 1224 02d8 8F93      		push r24
+ 1225               	.LCFI78:
+ 1226               		.cfi_def_cfa_offset 22
+ 1227 02da DF93      		push r29
+ 1228               	.LCFI79:
+ 1229               		.cfi_def_cfa_offset 23
+ 1230 02dc CF93      		push r28
+ 1231               	.LCFI80:
+ 1232               		.cfi_def_cfa_offset 24
+ 1233 02de 0E94 0000 		call chprintf
+ 324:W_M.c         ****         }
+ 1234               		.loc 1 324 0
+ 1235 02e2 1092 0000 		sts fsm_prd+1,__zero_reg__
+ 1236 02e6 1092 0000 		sts fsm_prd,__zero_reg__
+ 1237 02ea 0F90      		pop __tmp_reg__
+ 1238 02ec 0F90      		pop __tmp_reg__
+ 1239 02ee 0F90      		pop __tmp_reg__
+ 1240 02f0 0F90      		pop __tmp_reg__
+ 1241               	.LCFI81:
+ 1242               		.cfi_def_cfa_offset 20
+ 326:W_M.c         ****           chThdSleepMilliseconds(20); // Debouncing time
+ 1243               		.loc 1 326 0
+ 1244 02f2 4D9B      		sbis 0x9,5
+ 1245 02f4 00C0      		rjmp .L39
+ 1246               	.L85:
+ 327:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Inicio do processo\n\r");
+ 1247               		.loc 1 327 0
+ 1248 02f6 89E3      		ldi r24,lo8(57)
+ 1249 02f8 91E0      		ldi r25,lo8(1)
+ 1250 02fa 0E94 0000 		call chThdSleep
+ 328:W_M.c         ****           if(fsm_prd.select_init == 0){
+ 1251               		.loc 1 328 0
+ 1252 02fe 80E0      		ldi r24,lo8(.LC10)
+ 1253 0300 90E0      		ldi r25,hi8(.LC10)
+ 1254 0302 9F93      		push r25
+ 1255               	.LCFI82:
+ 1256               		.cfi_def_cfa_offset 21
+ 1257 0304 8F93      		push r24
+ 1258               	.LCFI83:
+ 1259               		.cfi_def_cfa_offset 22
+ 1260 0306 C0E0      		ldi r28,lo8(SD1)
+ 1261 0308 D0E0      		ldi r29,hi8(SD1)
+ 1262 030a DF93      		push r29
+ 1263               	.LCFI84:
+ 1264               		.cfi_def_cfa_offset 23
+ 1265 030c CF93      		push r28
+ 1266               	.LCFI85:
+ 1267               		.cfi_def_cfa_offset 24
+ 1268 030e 0E94 0000 		call chprintf
+ 329:W_M.c         ****             chprintf((BaseSequentialStream *)&SD1, "Enchendo para o Molho \n\r");
+ 1269               		.loc 1 329 0
+ 1270 0312 8091 0000 		lds r24,fsm_prd
+ 1271 0316 9091 0000 		lds r25,fsm_prd+1
+ 1272 031a 0F90      		pop __tmp_reg__
+ 1273 031c 0F90      		pop __tmp_reg__
+ 1274 031e 0F90      		pop __tmp_reg__
+ 1275 0320 0F90      		pop __tmp_reg__
+ 1276               	.LCFI86:
+ 1277               		.cfi_def_cfa_offset 20
+ 1278 0322 0097      		sbiw r24,0
+ 1279 0324 01F4      		brne .+2
+ 1280 0326 00C0      		rjmp .L88
+ 1281               	.L40:
+ 332:W_M.c         ****             chprintf((BaseSequentialStream *)&SD1, "Enchendo para o enxague\n\r");
+ 1282               		.loc 1 332 0
+ 1283 0328 0297      		sbiw r24,2
+ 1284 032a 01F0      		breq .+2
+ 1285 032c 00C0      		rjmp .L20
+ 333:W_M.c         ****           }
+ 1286               		.loc 1 333 0
+ 1287 032e 80E0      		ldi r24,lo8(.LC12)
+ 1288 0330 90E0      		ldi r25,hi8(.LC12)
+ 1289               	.L82:
+ 421:W_M.c         ****               // printf("Fim giros Lavagem\n");
+ 1290               		.loc 1 421 0
+ 1291 0332 9F93      		push r25
+ 1292               	.LCFI87:
+ 1293               		.cfi_def_cfa_offset 21
+ 1294 0334 8F93      		push r24
+ 1295               	.LCFI88:
+ 1296               		.cfi_def_cfa_offset 22
+ 1297 0336 80E0      		ldi r24,lo8(SD1)
+ 1298 0338 90E0      		ldi r25,hi8(SD1)
+ 1299 033a 9F93      		push r25
+ 1300               	.LCFI89:
+ 1301               		.cfi_def_cfa_offset 23
+ 1302 033c 8F93      		push r24
+ 1303               	.LCFI90:
+ 1304               		.cfi_def_cfa_offset 24
+ 1305 033e 0E94 0000 		call chprintf
+ 1306 0342 0F90      		pop __tmp_reg__
+ 1307 0344 0F90      		pop __tmp_reg__
+ 1308 0346 0F90      		pop __tmp_reg__
+ 1309 0348 0F90      		pop __tmp_reg__
+ 1310               	.LCFI91:
+ 1311               		.cfi_def_cfa_offset 20
+ 1312 034a 00C0      		rjmp .L20
+ 1313               	.L87:
+ 300:W_M.c         ****           chThdSleepMilliseconds(20); // Debouncing time
+ 1314               		.loc 1 300 0 discriminator 1
+ 1315 034c 4E9B      		sbis 0x9,6
+ 1316 034e 00C0      		rjmp .L36
+ 301:W_M.c         ****           while(palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH);
+ 1317               		.loc 1 301 0
+ 1318 0350 89E3      		ldi r24,lo8(57)
+ 1319 0352 91E0      		ldi r25,lo8(1)
+ 1320 0354 0E94 0000 		call chThdSleep
+ 1321               	.L33:
+ 302:W_M.c         ****           lavar = ENXAGUE;
+ 1322               		.loc 1 302 0 discriminator 1
+ 1323 0358 4E99      		sbic 0x9,6
+ 1324 035a 00C0      		rjmp .L33
+ 303:W_M.c         ****           fsm_enxague_init(&fsm_exg);
+ 1325               		.loc 1 303 0
+ 1326 035c 83E0      		ldi r24,lo8(3)
+ 1327 035e 8093 0000 		sts lavar,r24
+ 1328               	.LBB253:
+ 1329               	.LBB254:
+ 139:W_M.c         ****   st->t_giro = 3000;
+ 1330               		.loc 1 139 0
+ 1331 0362 8BE0      		ldi r24,lo8(11)
+ 1332 0364 8093 0000 		sts fsm_exg,r24
+ 140:W_M.c         **** }
+ 1333               		.loc 1 140 0
+ 1334 0368 88EB      		ldi r24,lo8(-72)
+ 1335 036a 9BE0      		ldi r25,lo8(11)
+ 1336 036c 9093 0000 		sts fsm_exg+1+1,r25
+ 1337 0370 8093 0000 		sts fsm_exg+1,r24
+ 1338               	.LBE254:
+ 1339               	.LBE253:
+ 305:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Modo inicial: Enxague\n\r");
+ 1340               		.loc 1 305 0
+ 1341 0374 3092 0000 		sts fsm_prd+1,r3
+ 1342 0378 2092 0000 		sts fsm_prd,r2
+ 306:W_M.c         ****           palClearPad(IOPORT2, LAVAGEM_ID);
+ 1343               		.loc 1 306 0
+ 1344 037c 5F92      		push r5
+ 1345               	.LCFI92:
+ 1346               		.cfi_def_cfa_offset 21
+ 1347 037e 4F92      		push r4
+ 1348               	.LCFI93:
+ 1349               		.cfi_def_cfa_offset 22
+ 1350 0380 DF93      		push r29
+ 1351               	.LCFI94:
+ 1352               		.cfi_def_cfa_offset 23
+ 1353 0382 CF93      		push r28
+ 1354               	.LCFI95:
+ 1355               		.cfi_def_cfa_offset 24
+ 1356 0384 0E94 0000 		call chprintf
+ 307:W_M.c         **** 
+ 1357               		.loc 1 307 0
+ 1358 0388 2998      		cbi 0x5,1
+ 1359 038a 8091 0000 		lds r24,fsm_prd
+ 1360 038e 9091 0000 		lds r25,fsm_prd+1
+ 1361 0392 0F90      		pop __tmp_reg__
+ 1362 0394 0F90      		pop __tmp_reg__
+ 1363 0396 0F90      		pop __tmp_reg__
+ 1364 0398 0F90      		pop __tmp_reg__
+ 1365               	.LCFI96:
+ 1366               		.cfi_def_cfa_offset 20
+ 1367 039a 00C0      		rjmp .L32
+ 1368               	.L27:
+ 458:W_M.c         ****     palClearPad(IOPORT2, LAVAGEM_ID);
+ 1369               		.loc 1 458 0
+ 1370 039c 2898      		cbi 0x5,0
+ 459:W_M.c         ****     palSetPad(IOPORT2, ENXAGUE_ID);
+ 1371               		.loc 1 459 0
+ 1372 039e 2998      		cbi 0x5,1
+ 460:W_M.c         ****     palClearPad(IOPORT2, CENTRI_ID);
+ 1373               		.loc 1 460 0
+ 1374 03a0 2A9A      		sbi 0x5,2
+ 461:W_M.c         ****     palClearPad(IOPORT4, PARADA_ID);
+ 1375               		.loc 1 461 0
+ 1376 03a2 2B98      		cbi 0x5,3
+ 462:W_M.c         **** 
+ 1377               		.loc 1 462 0
+ 1378 03a4 5F98      		cbi 0xb,7
+ 464:W_M.c         ****         case(ENCHER_EXG):
+ 1379               		.loc 1 464 0
+ 1380 03a6 8091 0000 		lds r24,fsm_exg
+ 1381 03aa 8C30      		cpi r24,lo8(12)
+ 1382 03ac 01F4      		brne .+2
+ 1383 03ae 00C0      		rjmp .L49
+ 1384 03b0 8D30      		cpi r24,lo8(13)
+ 1385 03b2 01F4      		brne .+2
+ 1386 03b4 00C0      		rjmp .L50
+ 1387 03b6 8B30      		cpi r24,lo8(11)
+ 1388 03b8 01F0      		breq .+2
+ 1389 03ba 00C0      		rjmp .L20
+ 470:W_M.c         ****           if(palReadPad(IOPORT4, SEN_CHEIO) == PAL_HIGH){
+ 1390               		.loc 1 470 0
+ 1391 03bc 2C9A      		sbi 0x5,4
+ 471:W_M.c         ****             // printf("Sensor Cheio: ON\n");
+ 1392               		.loc 1 471 0
+ 1393 03be 4C9B      		sbis 0x9,4
+ 1394 03c0 00C0      		rjmp .L20
+ 473:W_M.c         ****             fsm_exg.exg = RODAR_EXG;
+ 1395               		.loc 1 473 0
+ 1396 03c2 2C98      		cbi 0x5,4
+ 474:W_M.c         **** 
+ 1397               		.loc 1 474 0
+ 1398 03c4 8CE0      		ldi r24,lo8(12)
+ 1399 03c6 8093 0000 		sts fsm_exg,r24
+ 1400 03ca 00C0      		rjmp .L20
+ 1401               	.L22:
+ 389:W_M.c         ****       palSetPad(IOPORT2, LAVAGEM_ID);
+ 1402               		.loc 1 389 0
+ 1403 03cc 2898      		cbi 0x5,0
+ 390:W_M.c         ****       palClearPad(IOPORT2, ENXAGUE_ID);
+ 1404               		.loc 1 390 0
+ 1405 03ce 299A      		sbi 0x5,1
+ 391:W_M.c         ****       palClearPad(IOPORT2, CENTRI_ID);
+ 1406               		.loc 1 391 0
+ 1407 03d0 2A98      		cbi 0x5,2
+ 392:W_M.c         ****       palClearPad(IOPORT4, PARADA_ID);
+ 1408               		.loc 1 392 0
+ 1409 03d2 2B98      		cbi 0x5,3
+ 393:W_M.c         **** 
+ 1410               		.loc 1 393 0
+ 1411 03d4 5F98      		cbi 0xb,7
+ 395:W_M.c         ****         case(RODAR_LVG):
+ 1412               		.loc 1 395 0
+ 1413 03d6 8091 0000 		lds r24,fsm_lvg
+ 1414 03da 8930      		cpi r24,lo8(9)
+ 1415 03dc 01F4      		brne .+2
+ 1416 03de 00C0      		rjmp .L45
+ 1417 03e0 8A30      		cpi r24,lo8(10)
+ 1418 03e2 01F4      		brne .+2
+ 1419 03e4 00C0      		rjmp .L46
+ 1420 03e6 8830      		cpi r24,lo8(8)
+ 1421 03e8 01F0      		breq .+2
+ 1422 03ea 00C0      		rjmp .L20
+ 402:W_M.c         ****           spinning(fsm_lvg.t_giros);
+ 1423               		.loc 1 402 0
+ 1424 03ec 80E0      		ldi r24,lo8(.LC17)
+ 1425 03ee 90E0      		ldi r25,hi8(.LC17)
+ 1426 03f0 9F93      		push r25
+ 1427               	.LCFI97:
+ 1428               		.cfi_def_cfa_offset 21
+ 1429 03f2 8F93      		push r24
+ 1430               	.LCFI98:
+ 1431               		.cfi_def_cfa_offset 22
+ 1432 03f4 C0E0      		ldi r28,lo8(SD1)
+ 1433 03f6 D0E0      		ldi r29,hi8(SD1)
+ 1434 03f8 DF93      		push r29
+ 1435               	.LCFI99:
+ 1436               		.cfi_def_cfa_offset 23
+ 1437 03fa CF93      		push r28
+ 1438               	.LCFI100:
+ 1439               		.cfi_def_cfa_offset 24
+ 1440 03fc 0E94 0000 		call chprintf
+ 403:W_M.c         ****           fsm_lvg.ul_espera = chVTGetSystemTime();
+ 1441               		.loc 1 403 0
+ 1442 0400 8091 0000 		lds r24,fsm_lvg+9
+ 1443 0404 9091 0000 		lds r25,fsm_lvg+9+1
+ 1444 0408 0E94 0000 		call spinning
+ 1445               	.LBB255:
+ 1446               	.LBB256:
+ 1447               	.LBB257:
+ 1448               	.LBB258:
+ 1449               	.LBB259:
+ 437:../../../os/common/ports/AVR/chcore.h **** }
+ 1450               		.loc 2 437 0
+ 1451               	/* #APP */
+ 1452               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
+ 1453 040c F894      		cli
+ 1454               	 ;  0 "" 2
+ 1455               	/* #NOAPP */
+ 1456               	.LBE259:
+ 1457               	.LBE258:
+ 1458               	.LBE257:
+ 1459               	.LBB260:
+ 1460               	.LBB261:
+ 1461               		.loc 3 118 0
+ 1462 040e 8091 0000 		lds r24,ch+19
+ 1463 0412 9091 0000 		lds r25,ch+19+1
+ 1464               	.LBE261:
+ 1465               	.LBE260:
+ 1466               	.LBB262:
+ 1467               	.LBB263:
+ 1468               	.LBB264:
+ 1469               	.LBB265:
+ 1470               		.loc 2 447 0
+ 1471               	/* #APP */
+ 1472               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
+ 1473 0416 7894      		sei
+ 1474               	 ;  0 "" 2
+ 1475               	/* #NOAPP */
+ 1476               	.LBE265:
+ 1477               	.LBE264:
+ 1478               	.LBE263:
+ 1479               	.LBE262:
+ 1480               	.LBE256:
+ 1481               	.LBE255:
+ 404:W_M.c         ****           fsm_lvg.lvg = ESPERA_LVG;
+ 1482               		.loc 1 404 0
+ 1483 0418 9093 0000 		sts fsm_lvg+3+1,r25
+ 1484 041c 8093 0000 		sts fsm_lvg+3,r24
+ 405:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Espera Lavagem\n\r");
+ 1485               		.loc 1 405 0
+ 1486 0420 89E0      		ldi r24,lo8(9)
+ 1487 0422 8093 0000 		sts fsm_lvg,r24
+ 406:W_M.c         ****           // printf("DEBUG: Super LAVAGEM - estado ESPERA\n");
+ 1488               		.loc 1 406 0
+ 1489 0426 80E0      		ldi r24,lo8(.LC18)
+ 1490 0428 90E0      		ldi r25,hi8(.LC18)
+ 1491 042a 9F93      		push r25
+ 1492               	.LCFI101:
+ 1493               		.cfi_def_cfa_offset 25
+ 1494 042c 8F93      		push r24
+ 1495               	.LCFI102:
+ 1496               		.cfi_def_cfa_offset 26
+ 1497 042e DF93      		push r29
+ 1498               	.LCFI103:
+ 1499               		.cfi_def_cfa_offset 27
+ 1500 0430 CF93      		push r28
+ 1501               	.LCFI104:
+ 1502               		.cfi_def_cfa_offset 28
+ 1503 0432 0E94 0000 		call chprintf
+ 409:W_M.c         **** 
+ 1504               		.loc 1 409 0
+ 1505 0436 8DB7      		in r24,__SP_L__
+ 1506 0438 9EB7      		in r25,__SP_H__
+ 1507 043a 0896      		adiw r24,8
+ 1508 043c 0FB6      		in __tmp_reg__,__SREG__
+ 1509 043e F894      		cli
+ 1510 0440 9EBF      		out __SP_H__,r25
+ 1511 0442 0FBE      		out __SREG__,__tmp_reg__
+ 1512 0444 8DBF      		out __SP_L__,r24
+ 1513               	.LCFI105:
+ 1514               		.cfi_def_cfa_offset 20
+ 1515 0446 00C0      		rjmp .L20
+ 1516               	.L84:
+ 290:W_M.c         ****           while(palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH);
+ 1517               		.loc 1 290 0
+ 1518 0448 89E3      		ldi r24,lo8(57)
+ 1519 044a 91E0      		ldi r25,lo8(1)
+ 1520 044c 0E94 0000 		call chThdSleep
+ 1521               	.L31:
+ 291:W_M.c         ****           // printf("Inicio MOLHO\n");
+ 1522               		.loc 1 291 0 discriminator 1
+ 1523 0450 4E99      		sbic 0x9,6
+ 1524 0452 00C0      		rjmp .L31
+ 293:W_M.c         ****           fsm_lavagem_init(&fsm_lvg);
+ 1525               		.loc 1 293 0
+ 1526 0454 82E0      		ldi r24,lo8(2)
+ 1527 0456 8093 0000 		sts lavar,r24
+ 1528               	.LBB266:
+ 1529               	.LBB238:
+ 129:W_M.c         ****   st->turns = 0;
+ 1530               		.loc 1 129 0
+ 1531 045a 88E0      		ldi r24,lo8(8)
+ 1532 045c 8093 0000 		sts fsm_lvg,r24
+ 130:W_M.c         ****   st->t_espera = 1000;
+ 1533               		.loc 1 130 0
+ 1534 0460 1092 0000 		sts fsm_lvg+5+1,__zero_reg__
+ 1535 0464 1092 0000 		sts fsm_lvg+5,__zero_reg__
+ 131:W_M.c         ****   st->t_giros = 2400;
+ 1536               		.loc 1 131 0
+ 1537 0468 9092 0000 		sts fsm_lvg+7+1,r9
+ 1538 046c 8092 0000 		sts fsm_lvg+7,r8
+ 132:W_M.c         ****   st->instante = chVTGetSystemTime();
+ 1539               		.loc 1 132 0
+ 1540 0470 B092 0000 		sts fsm_lvg+9+1,r11
+ 1541 0474 A092 0000 		sts fsm_lvg+9,r10
+ 1542               	.LBB227:
+ 1543               	.LBB228:
+ 1544               	.LBB229:
+ 1545               	.LBB230:
+ 1546               	.LBB231:
+ 437:../../../os/common/ports/AVR/chcore.h **** }
+ 1547               		.loc 2 437 0
+ 1548               	/* #APP */
+ 1549               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
+ 1550 0478 F894      		cli
+ 1551               	 ;  0 "" 2
+ 1552               	/* #NOAPP */
+ 1553               	.LBE231:
+ 1554               	.LBE230:
+ 1555               	.LBE229:
+ 1556               	.LBB232:
+ 1557               	.LBB233:
+ 1558               		.loc 3 118 0
+ 1559 047a 8091 0000 		lds r24,ch+19
+ 1560 047e 9091 0000 		lds r25,ch+19+1
+ 1561               	.LBE233:
+ 1562               	.LBE232:
+ 1563               	.LBB234:
+ 1564               	.LBB235:
+ 1565               	.LBB236:
+ 1566               	.LBB237:
+ 1567               		.loc 2 447 0
+ 1568               	/* #APP */
+ 1569               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
+ 1570 0482 7894      		sei
+ 1571               	 ;  0 "" 2
+ 1572               	/* #NOAPP */
+ 1573               	.LBE237:
+ 1574               	.LBE236:
+ 1575               	.LBE235:
+ 1576               	.LBE234:
+ 1577               	.LBE228:
+ 1578               	.LBE227:
+ 133:W_M.c         ****   st->ul_espera = st->instante;
+ 1579               		.loc 1 133 0
+ 1580 0484 9093 0000 		sts fsm_lvg+1+1,r25
+ 1581 0488 8093 0000 		sts fsm_lvg+1,r24
+ 134:W_M.c         **** }
+ 1582               		.loc 1 134 0
+ 1583 048c 9093 0000 		sts fsm_lvg+3+1,r25
+ 1584 0490 8093 0000 		sts fsm_lvg+3,r24
+ 1585               	.LBE238:
+ 1586               	.LBE266:
+ 295:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Modo inicial: Lavagem \n\r");
+ 1587               		.loc 1 295 0
+ 1588 0494 D092 0000 		sts fsm_prd+1,r13
+ 1589 0498 C092 0000 		sts fsm_prd,r12
+ 296:W_M.c         ****           palClearPad(IOPORT2, MOLHO_ID);
+ 1590               		.loc 1 296 0
+ 1591 049c FF92      		push r15
+ 1592               	.LCFI106:
+ 1593               		.cfi_def_cfa_offset 21
+ 1594 049e EF92      		push r14
+ 1595               	.LCFI107:
+ 1596               		.cfi_def_cfa_offset 22
+ 1597 04a0 DF93      		push r29
+ 1598               	.LCFI108:
+ 1599               		.cfi_def_cfa_offset 23
+ 1600 04a2 CF93      		push r28
+ 1601               	.LCFI109:
+ 1602               		.cfi_def_cfa_offset 24
+ 1603 04a4 0E94 0000 		call chprintf
+ 297:W_M.c         ****         }
+ 1604               		.loc 1 297 0
+ 1605 04a8 2898      		cbi 0x5,0
+ 1606 04aa 8091 0000 		lds r24,fsm_prd
+ 1607 04ae 9091 0000 		lds r25,fsm_prd+1
+ 1608 04b2 0F90      		pop __tmp_reg__
+ 1609 04b4 0F90      		pop __tmp_reg__
+ 1610 04b6 0F90      		pop __tmp_reg__
+ 1611 04b8 0F90      		pop __tmp_reg__
+ 1612               	.LCFI110:
+ 1613               		.cfi_def_cfa_offset 20
+ 1614 04ba 00C0      		rjmp .L29
+ 1615               	.L42:
+ 358:W_M.c         ****           if(palReadPad(IOPORT4, SEN_CHEIO) == PAL_HIGH){
+ 1616               		.loc 1 358 0
+ 1617 04bc 2C9A      		sbi 0x5,4
+ 359:W_M.c         ****             // printf("Sensor Cheio\n");
+ 1618               		.loc 1 359 0
+ 1619 04be 4C9B      		sbis 0x9,4
+ 1620 04c0 00C0      		rjmp .L20
+ 361:W_M.c         ****             palClearPad(IOPORT2, ENCHE_ID);
+ 1621               		.loc 1 361 0
+ 1622 04c2 80E0      		ldi r24,lo8(.LC13)
+ 1623 04c4 90E0      		ldi r25,hi8(.LC13)
+ 1624 04c6 9F93      		push r25
+ 1625               	.LCFI111:
+ 1626               		.cfi_def_cfa_offset 21
+ 1627 04c8 8F93      		push r24
+ 1628               	.LCFI112:
+ 1629               		.cfi_def_cfa_offset 22
+ 1630 04ca 80E0      		ldi r24,lo8(SD1)
+ 1631 04cc 90E0      		ldi r25,hi8(SD1)
+ 1632 04ce 9F93      		push r25
+ 1633               	.LCFI113:
+ 1634               		.cfi_def_cfa_offset 23
+ 1635 04d0 8F93      		push r24
+ 1636               	.LCFI114:
+ 1637               		.cfi_def_cfa_offset 24
+ 1638 04d2 0E94 0000 		call chprintf
+ 362:W_M.c         ****             fsm_ml.ml = RODAR_ML;
+ 1639               		.loc 1 362 0
+ 1640 04d6 2C98      		cbi 0x5,4
+ 363:W_M.c         ****             // printf("Início Giros Molho\n");
+ 1641               		.loc 1 363 0
+ 1642 04d8 87E0      		ldi r24,lo8(7)
+ 1643 04da 8093 0000 		sts fsm_ml,r24
+ 1644 04de 0F90      		pop __tmp_reg__
+ 1645 04e0 0F90      		pop __tmp_reg__
+ 1646 04e2 0F90      		pop __tmp_reg__
+ 1647 04e4 0F90      		pop __tmp_reg__
+ 1648               	.LCFI115:
+ 1649               		.cfi_def_cfa_offset 20
+ 1650 04e6 00C0      		rjmp .L20
+ 1651               	.L88:
+ 330:W_M.c         ****           }
+ 1652               		.loc 1 330 0
+ 1653 04e8 80E0      		ldi r24,lo8(.LC11)
+ 1654 04ea 90E0      		ldi r25,hi8(.LC11)
+ 1655 04ec 9F93      		push r25
+ 1656               	.LCFI116:
+ 1657               		.cfi_def_cfa_offset 21
+ 1658 04ee 8F93      		push r24
+ 1659               	.LCFI117:
+ 1660               		.cfi_def_cfa_offset 22
+ 1661 04f0 DF93      		push r29
+ 1662               	.LCFI118:
+ 1663               		.cfi_def_cfa_offset 23
+ 1664 04f2 CF93      		push r28
+ 1665               	.LCFI119:
+ 1666               		.cfi_def_cfa_offset 24
+ 1667 04f4 0E94 0000 		call chprintf
+ 1668 04f8 8091 0000 		lds r24,fsm_prd
+ 1669 04fc 9091 0000 		lds r25,fsm_prd+1
+ 1670 0500 0F90      		pop __tmp_reg__
+ 1671 0502 0F90      		pop __tmp_reg__
+ 1672 0504 0F90      		pop __tmp_reg__
+ 1673 0506 0F90      		pop __tmp_reg__
+ 1674               	.LCFI120:
+ 1675               		.cfi_def_cfa_offset 20
+ 1676 0508 00C0      		rjmp .L40
+ 1677               	.L46:
+ 436:W_M.c         ****           // printf("DEBUG: Super LAVAGEM - estado ESVAZIA_LVG\n");
+ 1678               		.loc 1 436 0
+ 1679 050a 2D9A      		sbi 0x5,5
+ 438:W_M.c         ****             // printf("Sensor Vazio: ON\n");
+ 1680               		.loc 1 438 0
+ 1681 050c 4B9B      		sbis 0x9,3
+ 1682 050e 00C0      		rjmp .L20
+ 440:W_M.c         ****             // printf("Fim LAVAGEM\n");
+ 1683               		.loc 1 440 0
+ 1684 0510 2D98      		cbi 0x5,5
+ 442:W_M.c         ****             palClearPad(IOPORT2, LAVAGEM_ID);
+ 1685               		.loc 1 442 0
+ 1686 0512 80E0      		ldi r24,lo8(.LC20)
+ 1687 0514 90E0      		ldi r25,hi8(.LC20)
+ 1688 0516 9F93      		push r25
+ 1689               	.LCFI121:
+ 1690               		.cfi_def_cfa_offset 21
+ 1691 0518 8F93      		push r24
+ 1692               	.LCFI122:
+ 1693               		.cfi_def_cfa_offset 22
+ 1694 051a C0E0      		ldi r28,lo8(SD1)
+ 1695 051c D0E0      		ldi r29,hi8(SD1)
+ 1696 051e DF93      		push r29
+ 1697               	.LCFI123:
+ 1698               		.cfi_def_cfa_offset 23
+ 1699 0520 CF93      		push r28
+ 1700               	.LCFI124:
+ 1701               		.cfi_def_cfa_offset 24
+ 1702 0522 0E94 0000 		call chprintf
+ 443:W_M.c         **** 
+ 1703               		.loc 1 443 0
+ 1704 0526 2998      		cbi 0x5,1
+ 446:W_M.c         ****               lavar = ENXAGUE;
+ 1705               		.loc 1 446 0
+ 1706 0528 80E0      		ldi r24,lo8(.LC21)
+ 1707 052a 90E0      		ldi r25,hi8(.LC21)
+ 1708 052c 9F93      		push r25
+ 1709               	.LCFI125:
+ 1710               		.cfi_def_cfa_offset 25
+ 1711 052e 8F93      		push r24
+ 1712               	.LCFI126:
+ 1713               		.cfi_def_cfa_offset 26
+ 1714 0530 DF93      		push r29
+ 1715               	.LCFI127:
+ 1716               		.cfi_def_cfa_offset 27
+ 1717 0532 CF93      		push r28
+ 1718               	.LCFI128:
+ 1719               		.cfi_def_cfa_offset 28
+ 1720 0534 0E94 0000 		call chprintf
+ 447:W_M.c         **** 
+ 1721               		.loc 1 447 0
+ 1722 0538 83E0      		ldi r24,lo8(3)
+ 1723 053a 8093 0000 		sts lavar,r24
+ 1724               	.LBB267:
+ 1725               	.LBB268:
+ 139:W_M.c         ****   st->t_giro = 3000;
+ 1726               		.loc 1 139 0
+ 1727 053e 8BE0      		ldi r24,lo8(11)
+ 1728 0540 8093 0000 		sts fsm_exg,r24
+ 140:W_M.c         **** }
+ 1729               		.loc 1 140 0
+ 1730 0544 88EB      		ldi r24,lo8(-72)
+ 1731 0546 9BE0      		ldi r25,lo8(11)
+ 1732 0548 9093 0000 		sts fsm_exg+1+1,r25
+ 1733 054c 8093 0000 		sts fsm_exg+1,r24
+ 1734               	.LBE268:
+ 1735               	.LBE267:
+ 450:W_M.c         ****             } // fim "if" sensor vazio
+ 1736               		.loc 1 450 0
+ 1737 0550 80E0      		ldi r24,lo8(.LC22)
+ 1738 0552 90E0      		ldi r25,hi8(.LC22)
+ 1739 0554 9F93      		push r25
+ 1740               	.LCFI129:
+ 1741               		.cfi_def_cfa_offset 29
+ 1742 0556 8F93      		push r24
+ 1743               	.LCFI130:
+ 1744               		.cfi_def_cfa_offset 30
+ 1745 0558 DF93      		push r29
+ 1746               	.LCFI131:
+ 1747               		.cfi_def_cfa_offset 31
+ 1748 055a CF93      		push r28
+ 1749               	.LCFI132:
+ 1750               		.cfi_def_cfa_offset 32
+ 1751 055c 0E94 0000 		call chprintf
+ 1752 0560 8DB7      		in r24,__SP_L__
+ 1753 0562 9EB7      		in r25,__SP_H__
+ 1754 0564 0C96      		adiw r24,12
+ 1755 0566 0FB6      		in __tmp_reg__,__SREG__
+ 1756 0568 F894      		cli
+ 1757 056a 9EBF      		out __SP_H__,r25
+ 1758 056c 0FBE      		out __SREG__,__tmp_reg__
+ 1759 056e 8DBF      		out __SP_L__,r24
+ 1760               	.LCFI133:
+ 1761               		.cfi_def_cfa_offset 20
+ 1762 0570 00C0      		rjmp .L20
+ 1763               	.L45:
+ 1764               	.LBB269:
+ 1765               	.LBB270:
+ 1766               	.LBB271:
+ 1767               	.LBB272:
+ 1768               	.LBB273:
+ 437:../../../os/common/ports/AVR/chcore.h **** }
+ 1769               		.loc 2 437 0
+ 1770               	/* #APP */
+ 1771               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
+ 1772 0572 F894      		cli
+ 1773               	 ;  0 "" 2
+ 1774               	/* #NOAPP */
+ 1775               	.LBE273:
+ 1776               	.LBE272:
+ 1777               	.LBE271:
+ 1778               	.LBB274:
+ 1779               	.LBB275:
+ 1780               		.loc 3 118 0
+ 1781 0574 8091 0000 		lds r24,ch+19
+ 1782 0578 9091 0000 		lds r25,ch+19+1
+ 1783               	.LBE275:
+ 1784               	.LBE274:
+ 1785               	.LBB276:
+ 1786               	.LBB277:
+ 1787               	.LBB278:
+ 1788               	.LBB279:
+ 1789               		.loc 2 447 0
+ 1790               	/* #APP */
+ 1791               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
+ 1792 057c 7894      		sei
+ 1793               	 ;  0 "" 2
+ 1794               	/* #NOAPP */
+ 1795               	.LBE279:
+ 1796               	.LBE278:
+ 1797               	.LBE277:
+ 1798               	.LBE276:
+ 1799               	.LBE270:
+ 1800               	.LBE269:
+ 415:W_M.c         ****           if(fsm_lvg.instante - fsm_lvg.ul_espera > TIME_MS2I(fsm_lvg.t_espera)){
+ 1801               		.loc 1 415 0
+ 1802 057e 9093 0000 		sts fsm_lvg+1+1,r25
+ 1803 0582 8093 0000 		sts fsm_lvg+1,r24
+ 416:W_M.c         ****             fsm_lvg.ul_espera = chVTGetSystemTime();
+ 1804               		.loc 1 416 0
+ 1805 0586 A091 0000 		lds r26,fsm_lvg+7
+ 1806 058a B091 0000 		lds r27,fsm_lvg+7+1
+ 1807 058e 2091 0000 		lds r18,fsm_lvg+3
+ 1808 0592 3091 0000 		lds r19,fsm_lvg+3+1
+ 1809 0596 EC01      		movw r28,r24
+ 1810 0598 C21B      		sub r28,r18
+ 1811 059a D30B      		sbc r29,r19
+ 1812 059c 28E0      		ldi r18,lo8(8)
+ 1813 059e 3DE3      		ldi r19,lo8(61)
+ 1814 05a0 0E94 0000 		call __usmulhisi3
+ 1815 05a4 6951      		subi r22,25
+ 1816 05a6 7C4F      		sbci r23,-4
+ 1817 05a8 8F4F      		sbci r24,-1
+ 1818 05aa 9F4F      		sbci r25,-1
+ 1819 05ac 28EE      		ldi r18,lo8(-24)
+ 1820 05ae 33E0      		ldi r19,lo8(3)
+ 1821 05b0 40E0      		ldi r20,0
+ 1822 05b2 50E0      		ldi r21,0
+ 1823 05b4 0E94 0000 		call __udivmodsi4
+ 1824 05b8 2C17      		cp r18,r28
+ 1825 05ba 3D07      		cpc r19,r29
+ 1826 05bc 00F0      		brlo .+2
+ 1827 05be 00C0      		rjmp .L20
+ 1828               	.LBB280:
+ 1829               	.LBB281:
+ 1830               	.LBB282:
+ 1831               	.LBB283:
+ 1832               	.LBB284:
+ 437:../../../os/common/ports/AVR/chcore.h **** }
+ 1833               		.loc 2 437 0
+ 1834               	/* #APP */
+ 1835               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
+ 1836 05c0 F894      		cli
+ 1837               	 ;  0 "" 2
+ 1838               	/* #NOAPP */
+ 1839               	.LBE284:
+ 1840               	.LBE283:
+ 1841               	.LBE282:
+ 1842               	.LBB285:
+ 1843               	.LBB286:
+ 1844               		.loc 3 118 0
+ 1845 05c2 8091 0000 		lds r24,ch+19
+ 1846 05c6 9091 0000 		lds r25,ch+19+1
+ 1847               	.LBE286:
+ 1848               	.LBE285:
+ 1849               	.LBB287:
+ 1850               	.LBB288:
+ 1851               	.LBB289:
+ 1852               	.LBB290:
+ 1853               		.loc 2 447 0
+ 1854               	/* #APP */
+ 1855               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
+ 1856 05ca 7894      		sei
+ 1857               	 ;  0 "" 2
+ 1858               	/* #NOAPP */
+ 1859               	.LBE290:
+ 1860               	.LBE289:
+ 1861               	.LBE288:
+ 1862               	.LBE287:
+ 1863               	.LBE281:
+ 1864               	.LBE280:
+ 417:W_M.c         ****             if(fsm_lvg.turns >= 3){
+ 1865               		.loc 1 417 0
+ 1866 05cc 9093 0000 		sts fsm_lvg+3+1,r25
+ 1867 05d0 8093 0000 		sts fsm_lvg+3,r24
+ 418:W_M.c         ****               fsm_lvg.turns = 0;
+ 1868               		.loc 1 418 0
+ 1869 05d4 8091 0000 		lds r24,fsm_lvg+5
+ 1870 05d8 9091 0000 		lds r25,fsm_lvg+5+1
+ 1871 05dc 8330      		cpi r24,3
+ 1872 05de 9105      		cpc r25,__zero_reg__
+ 1873 05e0 04F0      		brlt .+2
+ 1874 05e2 00C0      		rjmp .L89
+ 425:W_M.c         ****               fsm_lvg.lvg = RODAR_LVG;
+ 1875               		.loc 1 425 0
+ 1876 05e4 0196      		adiw r24,1
+ 1877 05e6 9093 0000 		sts fsm_lvg+5+1,r25
+ 1878 05ea 8093 0000 		sts fsm_lvg+5,r24
+ 426:W_M.c         ****             } // fim if voltas
+ 1879               		.loc 1 426 0
+ 1880 05ee 88E0      		ldi r24,lo8(8)
+ 1881 05f0 8093 0000 		sts fsm_lvg,r24
+ 1882 05f4 00C0      		rjmp .L20
+ 1883               	.L49:
+ 484:W_M.c         ****           spinning(fsm_exg.t_giro);
+ 1884               		.loc 1 484 0
+ 1885 05f6 80E0      		ldi r24,lo8(.LC23)
+ 1886 05f8 90E0      		ldi r25,hi8(.LC23)
+ 1887 05fa 9F93      		push r25
+ 1888               	.LCFI134:
+ 1889               		.cfi_def_cfa_offset 21
+ 1890 05fc 8F93      		push r24
+ 1891               	.LCFI135:
+ 1892               		.cfi_def_cfa_offset 22
+ 1893 05fe C0E0      		ldi r28,lo8(SD1)
+ 1894 0600 D0E0      		ldi r29,hi8(SD1)
+ 1895 0602 DF93      		push r29
+ 1896               	.LCFI136:
+ 1897               		.cfi_def_cfa_offset 23
+ 1898 0604 CF93      		push r28
+ 1899               	.LCFI137:
+ 1900               		.cfi_def_cfa_offset 24
+ 1901 0606 0E94 0000 		call chprintf
+ 485:W_M.c         ****           fsm_exg.exg = ESVAZIA_EXG;
+ 1902               		.loc 1 485 0
+ 1903 060a 8091 0000 		lds r24,fsm_exg+1
+ 1904 060e 9091 0000 		lds r25,fsm_exg+1+1
+ 1905 0612 0E94 0000 		call spinning
+ 486:W_M.c         ****           chprintf((BaseSequentialStream *)&SD1, "Esvazia Enxague\n\r");
+ 1906               		.loc 1 486 0
+ 1907 0616 8DE0      		ldi r24,lo8(13)
+ 1908 0618 8093 0000 		sts fsm_exg,r24
+ 487:W_M.c         **** 
+ 1909               		.loc 1 487 0
+ 1910 061c 80E0      		ldi r24,lo8(.LC24)
+ 1911 061e 90E0      		ldi r25,hi8(.LC24)
+ 1912 0620 9F93      		push r25
+ 1913               	.LCFI138:
+ 1914               		.cfi_def_cfa_offset 25
+ 1915 0622 8F93      		push r24
+ 1916               	.LCFI139:
+ 1917               		.cfi_def_cfa_offset 26
+ 1918 0624 DF93      		push r29
+ 1919               	.LCFI140:
+ 1920               		.cfi_def_cfa_offset 27
+ 1921 0626 CF93      		push r28
+ 1922               	.LCFI141:
+ 1923               		.cfi_def_cfa_offset 28
+ 1924 0628 0E94 0000 		call chprintf
+ 489:W_M.c         **** 
+ 1925               		.loc 1 489 0
+ 1926 062c 8DB7      		in r24,__SP_L__
+ 1927 062e 9EB7      		in r25,__SP_H__
+ 1928 0630 0896      		adiw r24,8
+ 1929 0632 0FB6      		in __tmp_reg__,__SREG__
+ 1930 0634 F894      		cli
+ 1931 0636 9EBF      		out __SP_H__,r25
+ 1932 0638 0FBE      		out __SREG__,__tmp_reg__
+ 1933 063a 8DBF      		out __SP_L__,r24
+ 1934               	.LCFI142:
+ 1935               		.cfi_def_cfa_offset 20
+ 1936 063c 00C0      		rjmp .L20
+ 1937               	.L50:
+ 497:W_M.c         ****           if(palReadPad(IOPORT4, SEN_VAZIO) == PAL_HIGH){
+ 1938               		.loc 1 497 0
+ 1939 063e 2D9A      		sbi 0x5,5
+ 498:W_M.c         ****              // printf("Sensor Vazio: ON\n");
+ 1940               		.loc 1 498 0
+ 1941 0640 4B9B      		sbis 0x9,3
+ 1942 0642 00C0      		rjmp .L20
+ 500:W_M.c         ****              lavar = CENTRIFUGA;
+ 1943               		.loc 1 500 0
+ 1944 0644 2D98      		cbi 0x5,5
+ 501:W_M.c         ****              fsm_centrifuga_init(&fsm_cen);
+ 1945               		.loc 1 501 0
+ 1946 0646 84E0      		ldi r24,lo8(4)
+ 1947 0648 8093 0000 		sts lavar,r24
+ 1948               	.LBB291:
+ 1949               	.LBB292:
+ 145:W_M.c         ****   st->tempo = chVTGetSystemTime();
+ 1950               		.loc 1 145 0
+ 1951 064c 8EE0      		ldi r24,lo8(14)
+ 1952 064e 8093 0000 		sts fsm_cen,r24
+ 1953               	.LBB293:
+ 1954               	.LBB294:
+ 1955               	.LBB295:
+ 1956               	.LBB296:
+ 1957               	.LBB297:
+ 437:../../../os/common/ports/AVR/chcore.h **** }
+ 1958               		.loc 2 437 0
+ 1959               	/* #APP */
+ 1960               	 ;  437 "../../../os/common/ports/AVR/chcore.h" 1
+ 1961 0652 F894      		cli
+ 1962               	 ;  0 "" 2
+ 1963               	/* #NOAPP */
+ 1964               	.LBE297:
+ 1965               	.LBE296:
+ 1966               	.LBE295:
+ 1967               	.LBB298:
+ 1968               	.LBB299:
+ 1969               		.loc 3 118 0
+ 1970 0654 8091 0000 		lds r24,ch+19
+ 1971 0658 9091 0000 		lds r25,ch+19+1
+ 1972               	.LBE299:
+ 1973               	.LBE298:
+ 1974               	.LBB300:
+ 1975               	.LBB301:
+ 1976               	.LBB302:
+ 1977               	.LBB303:
+ 1978               		.loc 2 447 0
+ 1979               	/* #APP */
+ 1980               	 ;  447 "../../../os/common/ports/AVR/chcore.h" 1
+ 1981 065c 7894      		sei
+ 1982               	 ;  0 "" 2
+ 1983               	/* #NOAPP */
+ 1984               	.LBE303:
+ 1985               	.LBE302:
+ 1986               	.LBE301:
+ 1987               	.LBE300:
+ 1988               	.LBE294:
+ 1989               	.LBE293:
+ 146:W_M.c         ****   st->ul_centri = st->tempo;
+ 1990               		.loc 1 146 0
+ 1991 065e 9093 0000 		sts fsm_cen+1+1,r25
+ 1992 0662 8093 0000 		sts fsm_cen+1,r24
+ 147:W_M.c         ****   st->t_centri = 4000;
+ 1993               		.loc 1 147 0
+ 1994 0666 9093 0000 		sts fsm_cen+3+1,r25
+ 1995 066a 8093 0000 		sts fsm_cen+3,r24
+ 148:W_M.c         **** }
+ 1996               		.loc 1 148 0
+ 1997 066e 80EA      		ldi r24,lo8(-96)
+ 1998 0670 9FE0      		ldi r25,lo8(15)
+ 1999 0672 9093 0000 		sts fsm_cen+5+1,r25
+ 2000 0676 8093 0000 		sts fsm_cen+5,r24
+ 2001               	.LBE292:
+ 2002               	.LBE291:
+ 503:W_M.c         ****              // printf("Fim Enxágue\n");
+ 2003               		.loc 1 503 0
+ 2004 067a 80E0      		ldi r24,lo8(.LC25)
+ 2005 067c 90E0      		ldi r25,hi8(.LC25)
+ 2006 067e 9F93      		push r25
+ 2007               	.LCFI143:
+ 2008               		.cfi_def_cfa_offset 21
+ 2009 0680 8F93      		push r24
+ 2010               	.LCFI144:
+ 2011               		.cfi_def_cfa_offset 22
+ 2012 0682 C0E0      		ldi r28,lo8(SD1)
+ 2013 0684 D0E0      		ldi r29,hi8(SD1)
+ 2014 0686 DF93      		push r29
+ 2015               	.LCFI145:
+ 2016               		.cfi_def_cfa_offset 23
+ 2017 0688 CF93      		push r28
+ 2018               	.LCFI146:
+ 2019               		.cfi_def_cfa_offset 24
+ 2020 068a 0E94 0000 		call chprintf
+ 505:W_M.c         ****              // printf("Inicio CENTRIFUGA\n");
+ 2021               		.loc 1 505 0
+ 2022 068e 2A98      		cbi 0x5,2
+ 507:W_M.c         ****           }// fim "if" sensor vazio
+ 2023               		.loc 1 507 0
+ 2024 0690 80E0      		ldi r24,lo8(.LC26)
+ 2025 0692 90E0      		ldi r25,hi8(.LC26)
+ 2026 0694 9F93      		push r25
+ 2027               	.LCFI147:
+ 2028               		.cfi_def_cfa_offset 25
+ 2029 0696 8F93      		push r24
+ 2030               	.LCFI148:
+ 2031               		.cfi_def_cfa_offset 26
+ 2032 0698 DF93      		push r29
+ 2033               	.LCFI149:
+ 2034               		.cfi_def_cfa_offset 27
+ 2035 069a CF93      		push r28
+ 2036               	.LCFI150:
+ 2037               		.cfi_def_cfa_offset 28
+ 2038 069c 0E94 0000 		call chprintf
+ 2039 06a0 8DB7      		in r24,__SP_L__
+ 2040 06a2 9EB7      		in r25,__SP_H__
+ 2041 06a4 0896      		adiw r24,8
+ 2042 06a6 0FB6      		in __tmp_reg__,__SREG__
+ 2043 06a8 F894      		cli
+ 2044 06aa 9EBF      		out __SP_H__,r25
+ 2045 06ac 0FBE      		out __SREG__,__tmp_reg__
+ 2046 06ae 8DBF      		out __SP_L__,r24
+ 2047               	.LCFI151:
+ 2048               		.cfi_def_cfa_offset 20
+ 2049 06b0 00C0      		rjmp .L20
+ 2050               	.L89:
+ 419:W_M.c         ****               fsm_lvg.lvg = ESVAZIA_LVG;
+ 2051               		.loc 1 419 0
+ 2052 06b2 1092 0000 		sts fsm_lvg+5+1,__zero_reg__
+ 2053 06b6 1092 0000 		sts fsm_lvg+5,__zero_reg__
+ 420:W_M.c         ****               chprintf((BaseSequentialStream *)&SD1, "Esvazia Lavagem \n\r");
+ 2054               		.loc 1 420 0
+ 2055 06ba 8AE0      		ldi r24,lo8(10)
+ 2056 06bc 8093 0000 		sts fsm_lvg,r24
+ 421:W_M.c         ****               // printf("Fim giros Lavagem\n");
+ 2057               		.loc 1 421 0
+ 2058 06c0 80E0      		ldi r24,lo8(.LC19)
+ 2059 06c2 90E0      		ldi r25,hi8(.LC19)
+ 2060 06c4 00C0      		rjmp .L82
+ 2061               		.cfi_endproc
+ 2062               	.LFE175:
+ 2064               		.section	.rodata.str1.1
+ 2065               	.LC28:
+ 2066 0200 494E 4943 		.string	"INICIO M\303\201QUINA\n\r"
+ 2066      494F 204D 
+ 2066      C381 5155 
+ 2066      494E 410A 
+ 2066      0D00 
+ 2067               	.LC29:
+ 2068 0212 2564 200A 		.string	"%d \n\r"
+ 2068      0D00 
+ 2069               		.section	.text.startup.main,"ax",@progbits
+ 2070               	.global	main
+ 2072               	main:
+ 2073               	.LFB176:
+ 552:W_M.c         **** 
+ 553:W_M.c         **** 
+ 554:W_M.c         **** int main(void) {
+ 2074               		.loc 1 554 0
+ 2075               		.cfi_startproc
+ 2076               	/* prologue: function */
+ 2077               	/* frame size = 0 */
+ 2078               	/* stack size = 0 */
+ 2079               	.L__stack_usage = 0
+ 555:W_M.c         ****   halInit();
+ 2080               		.loc 1 555 0
+ 2081 0000 0E94 0000 		call halInit
+ 2082               	.LVL34:
+ 556:W_M.c         ****   chSysInit();
+ 2083               		.loc 1 556 0
+ 2084 0004 0E94 0000 		call chSysInit
+ 2085               	.LVL35:
+ 557:W_M.c         **** 
+ 558:W_M.c         ****   sdStart(&SD1, 0);
+ 2086               		.loc 1 558 0
+ 2087 0008 60E0      		ldi r22,0
+ 2088 000a 70E0      		ldi r23,0
+ 2089 000c 80E0      		ldi r24,lo8(SD1)
+ 2090 000e 90E0      		ldi r25,hi8(SD1)
+ 2091 0010 0E94 0000 		call sdStart
+ 2092               	.LVL36:
+ 559:W_M.c         ****   chprintf((BaseSequentialStream *)&SD1, "INICIO MÁQUINA\n\r");
+ 2093               		.loc 1 559 0
+ 2094 0014 80E0      		ldi r24,lo8(.LC28)
+ 2095 0016 90E0      		ldi r25,hi8(.LC28)
+ 2096 0018 9F93      		push r25
+ 2097               	.LCFI152:
+ 2098               		.cfi_def_cfa_offset 3
+ 2099 001a 8F93      		push r24
+ 2100               	.LCFI153:
+ 2101               		.cfi_def_cfa_offset 4
+ 2102 001c C0E0      		ldi r28,lo8(SD1)
+ 2103 001e D0E0      		ldi r29,hi8(SD1)
+ 2104 0020 DF93      		push r29
+ 2105               	.LCFI154:
+ 2106               		.cfi_def_cfa_offset 5
+ 2107 0022 CF93      		push r28
+ 2108               	.LCFI155:
+ 2109               		.cfi_def_cfa_offset 6
+ 2110 0024 0E94 0000 		call chprintf
+ 2111               	.LVL37:
+ 560:W_M.c         ****   starting();
+ 2112               		.loc 1 560 0
+ 2113 0028 0E94 0000 		call starting
+ 2114               	.LVL38:
+ 561:W_M.c         ****   lavar = PARADA;
+ 2115               		.loc 1 561 0
+ 2116 002c 1092 0000 		sts lavar,__zero_reg__
+ 2117               	.LVL39:
+ 2118               	.LBB304:
+ 2119               	.LBB305:
+ 118:W_M.c         **** }
+ 2120               		.loc 1 118 0
+ 2121 0030 1092 0000 		sts fsm_prd+1,__zero_reg__
+ 2122 0034 1092 0000 		sts fsm_prd,__zero_reg__
+ 2123               	.LVL40:
+ 2124               	.LBE305:
+ 2125               	.LBE304:
+ 562:W_M.c         ****   fsm_parada_init(&fsm_prd);
+ 563:W_M.c         ****   chprintf((BaseSequentialStream *)&SD1, "%d \n\r", lavar);
+ 2126               		.loc 1 563 0
+ 2127 0038 1F92      		push __zero_reg__
+ 2128               	.LCFI156:
+ 2129               		.cfi_def_cfa_offset 7
+ 2130 003a 1F92      		push __zero_reg__
+ 2131               	.LCFI157:
+ 2132               		.cfi_def_cfa_offset 8
+ 2133 003c 80E0      		ldi r24,lo8(.LC29)
+ 2134 003e 90E0      		ldi r25,hi8(.LC29)
+ 2135 0040 9F93      		push r25
+ 2136               	.LCFI158:
+ 2137               		.cfi_def_cfa_offset 9
+ 2138 0042 8F93      		push r24
+ 2139               	.LCFI159:
+ 2140               		.cfi_def_cfa_offset 10
+ 2141 0044 DF93      		push r29
+ 2142               	.LCFI160:
+ 2143               		.cfi_def_cfa_offset 11
+ 2144 0046 CF93      		push r28
+ 2145               	.LCFI161:
+ 2146               		.cfi_def_cfa_offset 12
+ 2147 0048 0E94 0000 		call chprintf
+ 2148               	.LVL41:
+ 2149 004c 8DB7      		in r24,__SP_L__
+ 2150 004e 9EB7      		in r25,__SP_H__
+ 2151 0050 0A96      		adiw r24,10
+ 2152 0052 0FB6      		in __tmp_reg__,__SREG__
+ 2153 0054 F894      		cli
+ 2154 0056 9EBF      		out __SP_H__,r25
+ 2155 0058 0FBE      		out __SREG__,__tmp_reg__
+ 2156 005a 8DBF      		out __SP_L__,r24
+ 2157               	.LCFI162:
+ 2158               		.cfi_def_cfa_offset 2
+ 2159               	.L91:
+ 564:W_M.c         **** 
+ 565:W_M.c         ****   while(1){
+ 566:W_M.c         ****     lavar_maquina();
+ 2160               		.loc 1 566 0 discriminator 1
+ 2161 005c 0E94 0000 		call lavar_maquina
+ 2162               	.LVL42:
+ 2163 0060 00C0      		rjmp .L91
+ 2164               		.cfi_endproc
+ 2165               	.LFE176:
+ 2167               		.comm	fsm_cen,7,1
+ 2168               		.comm	fsm_exg,3,1
+ 2169               		.comm	fsm_lvg,11,1
+ 2170               		.comm	fsm_ml,3,1
+ 2171               		.comm	fsm_prd,2,1
+ 2172               	.global	lavar
+ 2173               		.section	.bss.lavar,"aw",@nobits
+ 2176               	lavar:
+ 2177 0000 00        		.zero	1
+ 2178               		.text
+ 2179               	.Letext0:
+ 2180               		.file 4 "/usr/lib/avr/include/stdint.h"
+ 2181               		.file 5 "/usr/lib/gcc/avr/5.4.0/include/stddef.h"
+ 2182               		.file 6 "../../../os/common/ports/AVR/compilers/GCC/chtypes.h"
+ 2183               		.file 7 "../../../os/rt/include/chsystypes.h"
+ 2184               		.file 8 "../../../os/rt/include/chschd.h"
+ 2185               		.file 9 "../../../os/rt/include/chtime.h"
+ 2186               		.file 10 "../../../os/rt/include/chsem.h"
+ 2187               		.file 11 "../../../os/rt/include/chmtx.h"
+ 2188               		.file 12 "../../../os/rt/include/chevents.h"
+ 2189               		.file 13 "../../../os/hal/include/hal_streams.h"
+ 2190               		.file 14 "../../../os/hal/include/hal_queues.h"
+ 2191               		.file 15 "../../../os/hal/ports/AVR/MEGA/LLD/GPIOv1/hal_pal_lld.h"
+ 2192               		.file 16 "../../../os/hal/include/hal_serial.h"
+ 2193               		.file 17 "../../../os/rt/include/chsys.h"
+ 2194               		.file 18 "../../../os/hal/ports/AVR/MEGA/LLD/USARTv1/hal_serial_lld.h"
+ 2195               		.file 19 "../../../os/hal/lib/streams/chprintf.h"
+ 2196               		.file 20 "../../../os/hal/include/hal.h"
 DEFINED SYMBOLS
                             *ABS*:0000000000000000 W_M.c
-     /tmp/ccx6OBvv.s:2      *ABS*:000000000000003e __SP_H__
-     /tmp/ccx6OBvv.s:3      *ABS*:000000000000003d __SP_L__
-     /tmp/ccx6OBvv.s:4      *ABS*:000000000000003f __SREG__
-     /tmp/ccx6OBvv.s:5      *ABS*:0000000000000000 __tmp_reg__
-     /tmp/ccx6OBvv.s:6      *ABS*:0000000000000001 __zero_reg__
-     /tmp/ccx6OBvv.s:16     .text.starting:0000000000000000 starting
-     /tmp/ccx6OBvv.s:183    .text.spinning:0000000000000000 spinning
-     /tmp/ccx6OBvv.s:1931   .bss.lavar:0000000000000000 lavar
-     /tmp/ccx6OBvv.s:580    .text.lavar_maquina:0000000000000000 lavar_maquina
+     /tmp/cc1MlH5P.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/cc1MlH5P.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/cc1MlH5P.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/cc1MlH5P.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/cc1MlH5P.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/cc1MlH5P.s:16     .text.starting:0000000000000000 starting
+     /tmp/cc1MlH5P.s:183    .text.spinning:0000000000000000 spinning
+     /tmp/cc1MlH5P.s:2176   .bss.lavar:0000000000000000 lavar
+     /tmp/cc1MlH5P.s:592    .text.lavar_maquina:0000000000000000 lavar_maquina
                             *COM*:0000000000000003 fsm_ml
                             *COM*:000000000000000b fsm_lvg
                             *COM*:0000000000000007 fsm_cen
                             *COM*:0000000000000002 fsm_prd
                             *COM*:0000000000000003 fsm_exg
-     /tmp/ccx6OBvv.s:1827   .text.startup.main:0000000000000000 main
+     /tmp/cc1MlH5P.s:2072   .text.startup.main:0000000000000000 main
 
 UNDEFINED SYMBOLS
 _pal_lld_setgroupmode
@@ -3321,6 +3624,7 @@ chprintf
 ch
 __usmulhisi3
 __udivmodsi4
+chThdSleep
 halInit
 chSysInit
 sdStart

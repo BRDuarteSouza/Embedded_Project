@@ -28,7 +28,7 @@
 #define EMER 2
 
 /* System variables*/
-#define GIRO_TEMPO 1000
+#define GIRO_TEMPO 500
 
 /* All State machines of the project */
 
@@ -121,15 +121,15 @@ static void fsm_parada_init(fsm_parada_s *st){
 static void fsm_molho_init(fsm_molho_s *st)
 {
   st->ml = ENCHER_ML;
-  st->t_giro = 4000;
+  st->t_giro = 2000;
 }
 
 static void fsm_lavagem_init(fsm_lavagem_s *st)
 {
   st->lvg = RODAR_LVG;
   st->turns = 0;
-  st->t_espera = 2000;
-  st->t_giros = 4000;
+  st->t_espera = 1000;
+  st->t_giros = 2400;
   st->instante = chVTGetSystemTime();
   st->ul_espera = st->instante;
 }
@@ -137,7 +137,7 @@ static void fsm_lavagem_init(fsm_lavagem_s *st)
 static void fsm_enxague_init(fsm_enxague_s *st)
 {
   st->exg = ENCHER_EXG;
-  st->t_giro = 4000;
+  st->t_giro = 3000;
 }
 
 static void fsm_centrifuga_init(fsm_centrifuga_s *st)
@@ -273,6 +273,7 @@ void lavar_maquina(){
       // printf("Inicio da Parada\n");
       // printf("Escolha o estado inicial:\n");
       chprintf((BaseSequentialStream *)&SD1, "Selecione o estado inicial\n\r");
+      chprintf((BaseSequentialStream *)&SD1, "Modo inicial: Molho\n\r");
       // scanf("%d", &fsm_prd.select_init);
       while(1){
         if(fsm_prd.select_init == 0){
@@ -286,32 +287,51 @@ void lavar_maquina(){
         }
 
         if(fsm_prd.select_init == 0 && palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH){
+          chThdSleepMilliseconds(20); // Debouncing time
+          while(palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH);
           // printf("Inicio MOLHO\n");
           lavar = LAVAGEM;
           fsm_lavagem_init(&fsm_lvg);
           fsm_prd.select_init = 1;
+          chprintf((BaseSequentialStream *)&SD1, "Modo inicial: Lavagem \n\r");
           palClearPad(IOPORT2, MOLHO_ID);
         }
 
         if(fsm_prd.select_init == 1 && palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH){
+          chThdSleepMilliseconds(20); // Debouncing time
+          while(palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH);
           lavar = ENXAGUE;
           fsm_enxague_init(&fsm_exg);
           fsm_prd.select_init = 2;
+          chprintf((BaseSequentialStream *)&SD1, "Modo inicial: Enxague\n\r");
           palClearPad(IOPORT2, LAVAGEM_ID);
 
         }
         if(fsm_prd.select_init == 2 && palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH){
+          chThdSleepMilliseconds(20); // Debouncing time
+          while(palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH);
           lavar = CENTRIFUGA;
           fsm_centrifuga_init(&fsm_cen);
           fsm_prd.select_init = 3;
+          chprintf((BaseSequentialStream *)&SD1, "Modo inicial: Centrifuga\n\r");
           palClearPad(IOPORT2, ENXAGUE_ID);
           // printf("Inicio ENXAGUE\n");
         }
         if(fsm_prd.select_init == 3 && palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH){
+          chThdSleepMilliseconds(20); // Debouncing time
+          while(palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH);
+          chprintf((BaseSequentialStream *)&SD1, "Modo inicial: Molho\n\r");
           fsm_prd.select_init = 0;
         }
         if(palReadPad(IOPORT4,BOT_INIT) == PAL_HIGH){
+          chThdSleepMilliseconds(20); // Debouncing time
           chprintf((BaseSequentialStream *)&SD1, "Inicio do processo\n\r");
+          if(fsm_prd.select_init == 0){
+            chprintf((BaseSequentialStream *)&SD1, "Enchendo para o Molho \n\r");
+          }
+          if(fsm_prd.select_init == 2){
+            chprintf((BaseSequentialStream *)&SD1, "Enchendo para o enxague\n\r");
+          }
           return;
         }
       }// end of PARADA loop
@@ -336,7 +356,6 @@ void lavar_maquina(){
           // printf("DEBUG: Super MOLHO - estado ENCHER_ML\n");
           // printf("Abrir água\n");
           palSetPad(IOPORT2, ENCHE_ID);
-          chprintf((BaseSequentialStream *)&SD1, "Enchendo... \n\r");
           if(palReadPad(IOPORT4, SEN_CHEIO) == PAL_HIGH){
             // printf("Sensor Cheio\n");
             chprintf((BaseSequentialStream *)&SD1, "Sensor cheio\n\r");
@@ -428,6 +447,7 @@ void lavar_maquina(){
               lavar = ENXAGUE;
 
               fsm_enxague_init(&fsm_exg);
+              chprintf((BaseSequentialStream *)&SD1, "Enche Enxague\n\r");
             } // fim "if" sensor vazio
             break;
           } // fim switch LAVAGEM
@@ -447,7 +467,6 @@ void lavar_maquina(){
             break;
           } // verificar emergência
           // printf("DEBUG: Super ENXAGUE - estado ENCHER_EXG\n");
-          chprintf((BaseSequentialStream *)&SD1, "Enche Enxague\n\r");
           palSetPad(IOPORT2, ENCHE_ID);
           if(palReadPad(IOPORT4, SEN_CHEIO) == PAL_HIGH){
             // printf("Sensor Cheio: ON\n");
@@ -465,6 +484,7 @@ void lavar_maquina(){
           chprintf((BaseSequentialStream *)&SD1, "Rodar Enxague\n\r");
           spinning(fsm_exg.t_giro);
           fsm_exg.exg = ESVAZIA_EXG;
+          chprintf((BaseSequentialStream *)&SD1, "Esvazia Enxague\n\r");
 
         break;
 
@@ -474,7 +494,6 @@ void lavar_maquina(){
           } //  verificar a emergência
 
           // printf("DEBUG: Super ENXAGUE - estados ESVAZIA_EXG\n");
-          chprintf((BaseSequentialStream *)&SD1, "Esvazia Enxague\n\r");
           palSetPad(IOPORT2, SECA_ID);
           if(palReadPad(IOPORT4, SEN_VAZIO) == PAL_HIGH){
              // printf("Sensor Vazio: ON\n");
@@ -515,6 +534,7 @@ void lavar_maquina(){
               lavar = PARADA;
               fsm_parada_init(&fsm_prd);
               palClearPad(IOPORT2, CENTRI_ID);
+              chprintf((BaseSequentialStream *)&SD1, "FIM DO PROCESSO\n\r");
               // printf("FIM DA Máquina\n");
             }
           break; // break de GIRA_R_CENTRI
