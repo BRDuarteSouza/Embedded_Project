@@ -1,8 +1,11 @@
 // W_M.c
-// Implement a state machine to execute a washing machine taks, with ChibiOS
+// Implement a state machine to execute a washing machine task, with ChibiOS.
 // Author: Bruno Duarte <brduart95@gmail.com>
 
+
+/* Libraries*/
 #include <stdint.h>
+#include <string.h>
 #include <ch.h>
 #include <hal.h>
 #include <chprintf.h>
@@ -163,6 +166,7 @@ fsm_centrifuga_s fsm_cen;
 
 
 /* Functions*/
+
 void starting(){
   // Output
   palSetPadMode(IOPORT2, SECA_ID, PAL_MODE_OUTPUT_PUSHPULL);
@@ -198,6 +202,14 @@ void starting(){
 
 }
 
+/* Interupt Callback*/
+
+static void emergency_cb(){
+  char msg[] = "PORTA ABERTA !!!\n\r";
+  sdWriteI(&SD1, msg, strlen(msg));
+  lavar = EMERGENCIA;
+}
+
 
 /* Spin Function */
 
@@ -212,22 +224,18 @@ void spinning(int timer) {
     agora = chVTGetSystemTime();
     switch(rd){
       case(GIRA_R):
-      // palClearPad(IOPORT3, MOTOR_DIR);
         if(lavar == EMERGENCIA){
           return;
-        } // verifcar emergência
+        } // Verify Emergency state
         palClearPad(IOPORT3, MOTOR_DIR);
-        if(agora - ls_report >= TIME_MS2I(GIRO_TEMPO)){
-          // printf("Girando pra Esqueda\n");
+        if(agora - ls_report >= TIME_MS2I(GIRO_TEMPO)){ // Spin to one side
           chprintf((BaseSequentialStream *)&SD1, "Gira Esqueda\n\r");
-          // chprintf((BaseSequentialStream *)&SD1, "Agora: %d\n\r",agora);
           palSetPad(IOPORT3, MOTOR_DIR);
           ls_report = agora;
           rd = GIRA_L;
           }
-        if(agora - init_time > TIME_MS2I(timer)){
-          // printf("Fim do Giro\n");
-          palSetPad(IOPORT3, MOTOR_DIR);
+        if(agora - init_time > TIME_MS2I(timer)){ // Verify if the spinning time
+          palSetPad(IOPORT3, MOTOR_DIR);          // has ended.
           palSetPad(IOPORT3, MOTOR_ESQ);
           chprintf((BaseSequentialStream *)&SD1, "saindo \n\r");
           return;
@@ -237,18 +245,14 @@ void spinning(int timer) {
       palClearPad(IOPORT3, MOTOR_ESQ);
         if(lavar == EMERGENCIA){
           return;
-        } // verifcar emergência
-        // palClearPad(IOPORT3, MOTOR_ESQ);
+        } // Verify emergency
         if(agora - ls_report >= TIME_MS2I(GIRO_TEMPO)){
-          // printf("Girando pra Direita\n");
-          // chprintf((BaseSequentialStream *)&SD1, "Agora: %d\n\r",agora);
           chprintf((BaseSequentialStream *)&SD1, "Gira Direita\n\r");
           palSetPad(IOPORT3, MOTOR_ESQ);
           ls_report = agora;
           rd = GIRA_R;
           }
         if(agora - init_time > TIME_MS2I(timer)){
-          // printf("saindo\n");
           palSetPad(IOPORT3, MOTOR_DIR);
           palSetPad(IOPORT3, MOTOR_ESQ);
           chprintf((BaseSequentialStream *)&SD1, "Fim Giro\n\r");
@@ -262,19 +266,16 @@ void spinning(int timer) {
 /* Main Machine */
 
 void lavar_maquina(){
-  // int t_cheio;
-  // chprintf((BaseSequentialStream *)&SD1, "ENtrei na maquina");
+
+
   switch(lavar){
 
     case(PARADA):
       if(lavar == EMERGENCIA){
         break;
-      } // verifcar emergência
-      // printf("Inicio da Parada\n");
-      // printf("Escolha o estado inicial:\n");
+      } // Verify emergency
       chprintf((BaseSequentialStream *)&SD1, "Selecione o estado inicial\n\r");
       chprintf((BaseSequentialStream *)&SD1, "Modo inicial: Molho\n\r");
-      // scanf("%d", &fsm_prd.select_init);
       while(1){
         if(fsm_prd.select_init == 0){
           palSetPad(IOPORT4, PARADA_ID);
@@ -288,8 +289,7 @@ void lavar_maquina(){
 
         if(fsm_prd.select_init == 0 && palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH){
           chThdSleepMilliseconds(20); // Debouncing time
-          while(palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH);
-          // printf("Inicio MOLHO\n");
+          while(palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH); //Debouncing trap
           lavar = LAVAGEM;
           fsm_lavagem_init(&fsm_lvg);
           fsm_prd.select_init = 1;
@@ -299,39 +299,42 @@ void lavar_maquina(){
 
         if(fsm_prd.select_init == 1 && palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH){
           chThdSleepMilliseconds(20); // Debouncing time
-          while(palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH);
+          while(palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH); //Debouncing trap
           lavar = ENXAGUE;
           fsm_enxague_init(&fsm_exg);
           fsm_prd.select_init = 2;
           chprintf((BaseSequentialStream *)&SD1, "Modo inicial: Enxague\n\r");
           palClearPad(IOPORT2, LAVAGEM_ID);
-
         }
+
         if(fsm_prd.select_init == 2 && palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH){
           chThdSleepMilliseconds(20); // Debouncing time
-          while(palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH);
+          while(palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH); //Debouncing trap
           lavar = CENTRIFUGA;
           fsm_centrifuga_init(&fsm_cen);
           fsm_prd.select_init = 3;
           chprintf((BaseSequentialStream *)&SD1, "Modo inicial: Centrifuga\n\r");
           palClearPad(IOPORT2, ENXAGUE_ID);
-          // printf("Inicio ENXAGUE\n");
         }
+
         if(fsm_prd.select_init == 3 && palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH){
           chThdSleepMilliseconds(20); // Debouncing time
-          while(palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH);
+          while(palReadPad(IOPORT4, BOT_SELECT) == PAL_HIGH);//Debouncing trap
           chprintf((BaseSequentialStream *)&SD1, "Modo inicial: Molho\n\r");
           fsm_prd.select_init = 0;
         }
+
         if(palReadPad(IOPORT4,BOT_INIT) == PAL_HIGH){
           chThdSleepMilliseconds(20); // Debouncing time
           chprintf((BaseSequentialStream *)&SD1, "Inicio do processo\n\r");
-          if(fsm_prd.select_init == 0){
+          if(fsm_prd.select_init == 0){ // Information on Debug.
             chprintf((BaseSequentialStream *)&SD1, "Enchendo para o Molho \n\r");
           }
+
           if(fsm_prd.select_init == 2){
             chprintf((BaseSequentialStream *)&SD1, "Enchendo para o enxague\n\r");
           }
+
           return;
         }
       }// end of PARADA loop
@@ -340,9 +343,8 @@ void lavar_maquina(){
 
 
     case(MOLHO):
-    // printf("Inicio Molho\n");
-    // chprintf((BaseSequentialStream *)&SD1, "Inicio MOLHO \n\r");
-    palSetPad(IOPORT2, MOLHO_ID);
+
+    palSetPad(IOPORT2, MOLHO_ID); // turn indicative LED on.
     palClearPad(IOPORT2, LAVAGEM_ID);
     palClearPad(IOPORT2, ENXAGUE_ID);
     palClearPad(IOPORT2, CENTRI_ID);
@@ -352,41 +354,33 @@ void lavar_maquina(){
         case(ENCHER_ML):
           if(lavar == EMERGENCIA){
             break;
-          } // verifcar emergência
-          // printf("DEBUG: Super MOLHO - estado ENCHER_ML\n");
-          // printf("Abrir água\n");
+          } // Verify emergency
           palSetPad(IOPORT2, ENCHE_ID);
           if(palReadPad(IOPORT4, SEN_CHEIO) == PAL_HIGH){
-            // printf("Sensor Cheio\n");
             chprintf((BaseSequentialStream *)&SD1, "Sensor cheio\n\r");
             palClearPad(IOPORT2, ENCHE_ID);
             fsm_ml.ml = RODAR_ML;
-            // printf("Início Giros Molho\n");
           }
           break;
 
         case(RODAR_ML):
           if(lavar == EMERGENCIA){
             break;
-          } // verifcar emergência
-          // printf("DEBUG: Super MOLHO - estado RODAR_ML\n");
+          } // Verify emergency
           chprintf((BaseSequentialStream *)&SD1, "Giros Molho\n\r");
           spinning(fsm_ml.t_giro);
           lavar = LAVAGEM;
           fsm_lavagem_init(&fsm_lvg);
-          // printf("Fim Molho\n");
           chprintf((BaseSequentialStream *)&SD1, "FIM Molho\n\r");
           palClearPad(IOPORT2, MOLHO_ID);
           chprintf((BaseSequentialStream *)&SD1, ("Inicio LAVAGEM\n\r"));
-          // printf("Inicio LAVAGEM\n");
           break;
       }
       break;
 
 
     case(LAVAGEM):
-      // printf("Inicio Lavagem\n");
-      palClearPad(IOPORT2, MOLHO_ID);
+      palClearPad(IOPORT2, MOLHO_ID); // indicative LED
       palSetPad(IOPORT2, LAVAGEM_ID);
       palClearPad(IOPORT2, ENXAGUE_ID);
       palClearPad(IOPORT2, CENTRI_ID);
@@ -396,61 +390,53 @@ void lavar_maquina(){
         case(RODAR_LVG):
           if(lavar == EMERGENCIA){
             break;
-          } // verifcar emergência
-          // printf("DEBUG Super LAVAGEM - estado RODAR_LVG\n");
-          // printf("Inicio giros Lavagem\n");
+          } // Verify emergency
           chprintf((BaseSequentialStream *)&SD1, "Giros Lavagem\n\r");
           spinning(fsm_lvg.t_giros);
           fsm_lvg.ul_espera = chVTGetSystemTime();
           fsm_lvg.lvg = ESPERA_LVG;
           chprintf((BaseSequentialStream *)&SD1, "Espera Lavagem\n\r");
-          // printf("DEBUG: Super LAVAGEM - estado ESPERA\n");
 
           break;
 
         case(ESPERA_LVG):
           if(lavar == EMERGENCIA){
             break;
-          } // verifcar emergência
+          } // Verify emergency
           fsm_lvg.instante = chVTGetSystemTime();
-          if(fsm_lvg.instante - fsm_lvg.ul_espera > TIME_MS2I(fsm_lvg.t_espera)){
-            fsm_lvg.ul_espera = chVTGetSystemTime();
+          if(fsm_lvg.instante - fsm_lvg.ul_espera > TIME_MS2I(fsm_lvg.t_espera)){ // repeat tunrs of Washing
+            fsm_lvg.ul_espera = chVTGetSystemTime();                              // x4.
             if(fsm_lvg.turns >= 3){
               fsm_lvg.turns = 0;
               fsm_lvg.lvg = ESVAZIA_LVG;
               chprintf((BaseSequentialStream *)&SD1, "Esvazia Lavagem \n\r");
-              // printf("Fim giros Lavagem\n");
 
             } else {
               fsm_lvg.turns ++;
               fsm_lvg.lvg = RODAR_LVG;
-            } // fim if voltas
-          } // fim if tempo
+            } // end if voltas
+          } // end if tempo
           break;
 
 
         case(ESVAZIA_LVG):
           if(lavar == EMERGENCIA){
             break;
-          } // verificar emergência
+          } // Verify emergency
           palSetPad(IOPORT2, SECA_ID);
-          // printf("DEBUG: Super LAVAGEM - estado ESVAZIA_LVG\n");
           if(palReadPad(IOPORT4, SEN_VAZIO) == PAL_HIGH){
-            // printf("Sensor Vazio: ON\n");
             palClearPad(IOPORT2, SECA_ID);
-            // printf("Fim LAVAGEM\n");
             chprintf((BaseSequentialStream *)&SD1, "Fim Lavagem\n\r");
             palClearPad(IOPORT2, LAVAGEM_ID);
 
-            // printf("Inicio ENXAGUE\n");
             chprintf((BaseSequentialStream *)&SD1, "Inicio Enxague\n\r");
               lavar = ENXAGUE;
 
               fsm_enxague_init(&fsm_exg);
               chprintf((BaseSequentialStream *)&SD1, "Enche Enxague\n\r");
-            } // fim "if" sensor vazio
+            } // end "if" sensor vazio
             break;
-          } // fim switch LAVAGEM
+          } // end switch LAVAGEM
           break;
 
 
@@ -465,22 +451,19 @@ void lavar_maquina(){
         case(ENCHER_EXG):
           if(lavar == EMERGENCIA){
             break;
-          } // verificar emergência
-          // printf("DEBUG: Super ENXAGUE - estado ENCHER_EXG\n");
+          } // Verify emergency
           palSetPad(IOPORT2, ENCHE_ID);
           if(palReadPad(IOPORT4, SEN_CHEIO) == PAL_HIGH){
-            // printf("Sensor Cheio: ON\n");
             palClearPad(IOPORT2, ENCHE_ID);
             fsm_exg.exg = RODAR_EXG;
 
-          } // fim "if" Sensor cheio
+          } // end "if" Sensor cheio
           break;
 
         case(RODAR_EXG):
           if(lavar == EMERGENCIA){
             break;
-          } // verificar emergência
-          // printf("DEBUG: Super ENXAGUE - estado RODAR_EXG\n");
+          } // Verify emergency
           chprintf((BaseSequentialStream *)&SD1, "Rodar Enxague\n\r");
           spinning(fsm_exg.t_giro);
           fsm_exg.exg = ESVAZIA_EXG;
@@ -491,19 +474,15 @@ void lavar_maquina(){
         case(ESVAZIA_EXG):
           if(lavar == EMERGENCIA){
             break;
-          } //  verificar a emergência
+          } //  Verify a emergency
 
-          // printf("DEBUG: Super ENXAGUE - estados ESVAZIA_EXG\n");
           palSetPad(IOPORT2, SECA_ID);
           if(palReadPad(IOPORT4, SEN_VAZIO) == PAL_HIGH){
-             // printf("Sensor Vazio: ON\n");
              palClearPad(IOPORT2, SECA_ID);
              lavar = CENTRIFUGA;
              fsm_centrifuga_init(&fsm_cen);
              chprintf((BaseSequentialStream *)&SD1, "Fim Enxague\n\r");
-             // printf("Fim Enxágue\n");
              palClearPad(IOPORT2, ENXAGUE_ID);
-             // printf("Inicio CENTRIFUGA\n");
              chprintf((BaseSequentialStream *)&SD1, "Inicio Centrifuga\n\r");
           }// fim "if" sensor vazio
         break;
@@ -512,7 +491,6 @@ void lavar_maquina(){
 
 
       case(CENTRIFUGA):
-      // printf("Inicio Centrifuga\n");
       palClearPad(IOPORT2, MOLHO_ID);
       palClearPad(IOPORT2, LAVAGEM_ID);
       palClearPad(IOPORT2, ENXAGUE_ID);
@@ -525,17 +503,13 @@ void lavar_maquina(){
               break;
             }
             palClearPad(IOPORT3, MOTOR_DIR);
-            // printf("DEBUG: Super CENTRIFUGA - estado GIRA_R_CENTRI\n");
             fsm_cen.tempo = chVTGetSystemTime();
-            // printf("Super:%d - estado:%d\n ",lavar, fsm_cen.cen);
-            // printf("CENTRIFUGA: %ld - %ld\n", fsm_cen.instante, fsm_cen.ul_espera);
             if(fsm_cen.tempo - fsm_cen.ul_centri > TIME_MS2I(fsm_cen.t_centri)){
               palSetPad(IOPORT3, MOTOR_DIR);
               lavar = PARADA;
               fsm_parada_init(&fsm_prd);
               palClearPad(IOPORT2, CENTRI_ID);
               chprintf((BaseSequentialStream *)&SD1, "FIM DO PROCESSO\n\r");
-              // printf("FIM DA Máquina\n");
             }
           break; // break de GIRA_R_CENTRI
         } // fim switch CENTRIFUGA
@@ -543,28 +517,44 @@ void lavar_maquina(){
 
 
     case(EMERGENCIA):
-      // printf("PORTA ABERTA. ERRO !!\n");
-      while(1);
+      if(palReadPad(IOPORT4, EMER) == PAL_LOW){
+        lavar = PARADA;
+        fsm_parada_init(&fsm_prd);
+      }
 
-    break; // break de emergência
+    break; // break de emergency
   } // fim switch máquina principal
 } // fim função da máquina principal.
 
 
 int main(void) {
+
+  /* Interruption Config */
+  static const EXTConfig extcfg = {
+    {
+      {EXT_CH_MODE_RISING_EDGE , emergency_cb},      /* INT0 Config. */
+      {EXT_CH_MODE_DISABLED , NULL},      /* INT1 Config. */
+      {EXT_CH_MODE_DISABLED , NULL},      /* INT2 Config. */
+      {EXT_CH_MODE_DISABLED , NULL},      /* INT3 Config. */
+    }
+};
+
+
   halInit();
   chSysInit();
 
+/* ChibiOS Config*/
   sdStart(&SD1, 0);
+  extStart(&EXTD1, &extcfg);
+  extChannelEnable(&EXTD1, INT0); // PD2 (4)
+
   chprintf((BaseSequentialStream *)&SD1, "INICIO MÁQUINA\n\r");
   starting();
   lavar = PARADA;
   fsm_parada_init(&fsm_prd);
-  chprintf((BaseSequentialStream *)&SD1, "%d \n\r", lavar);
 
   while(1){
     lavar_maquina();
   }
-  //casa
   return 0;
 }

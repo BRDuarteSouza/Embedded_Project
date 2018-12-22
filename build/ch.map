@@ -52,6 +52,7 @@ Archive member included to satisfy reference by file (symbol)
 Allocating common symbols
 Common symbol       size              file
 
+EXTD1               0x3               build/obj/hal_ext_lld.o
 fsm_lvg             0xb               build/obj/W_M.o
 ch_idle_thread_wa   0x69              build/obj/chsys.o
 GPTD1               0xa               build/obj/hal_gpt_lld.o
@@ -491,8 +492,6 @@ Discarded input sections
  .text.oqResetI
                 0x0000000000000000       0x24 build/obj/hal_queues.o
  .text.oqPutI   0x0000000000000000       0x8a build/obj/hal_queues.o
- .text.oqWriteI
-                0x0000000000000000       0x38 build/obj/hal_queues.o
  .text          0x0000000000000000        0x0 build/obj/hal_mmcsd.o
  .data          0x0000000000000000        0x0 build/obj/hal_mmcsd.o
  .bss           0x0000000000000000        0x0 build/obj/hal_mmcsd.o
@@ -503,6 +502,17 @@ Discarded input sections
  .debug_line    0x0000000000000000       0xf1 build/obj/hal_mmcsd.o
  .debug_str     0x0000000000000000      0x448 build/obj/hal_mmcsd.o
  .comment       0x0000000000000000       0x12 build/obj/hal_mmcsd.o
+ .text          0x0000000000000000        0x0 build/obj/hal_ext.o
+ .data          0x0000000000000000        0x0 build/obj/hal_ext.o
+ .bss           0x0000000000000000        0x0 build/obj/hal_ext.o
+ .text.extInit  0x0000000000000000        0x4 build/obj/hal_ext.o
+ .text.extObjectInit
+                0x0000000000000000        0xc build/obj/hal_ext.o
+ .text.extStop  0x0000000000000000       0x1c build/obj/hal_ext.o
+ .text.extChannelDisable
+                0x0000000000000000        0xa build/obj/hal_ext.o
+ .text.extSetChannelModeI
+                0x0000000000000000       0x28 build/obj/hal_ext.o
  .text          0x0000000000000000        0x0 build/obj/hal_gpt.o
  .data          0x0000000000000000        0x0 build/obj/hal_gpt.o
  .bss           0x0000000000000000        0x0 build/obj/hal_gpt.o
@@ -557,6 +567,15 @@ Discarded input sections
  .text          0x0000000000000000        0x0 build/obj/hal_lld.o
  .data          0x0000000000000000        0x0 build/obj/hal_lld.o
  .bss           0x0000000000000000        0x0 build/obj/hal_lld.o
+ .text          0x0000000000000000        0x0 build/obj/hal_ext_lld.o
+ .data          0x0000000000000000        0x0 build/obj/hal_ext_lld.o
+ .bss           0x0000000000000000        0x0 build/obj/hal_ext_lld.o
+ .text.ext_lld_channel_disable
+                0x0000000000000000        0x8 build/obj/hal_ext_lld.o
+ .text.ext_lld_init
+                0x0000000000000000        0x8 build/obj/hal_ext_lld.o
+ .text.ext_lld_stop
+                0x0000000000000000        0xe build/obj/hal_ext_lld.o
  .text          0x0000000000000000        0x0 build/obj/hal_pal_lld.o
  .data          0x0000000000000000        0x0 build/obj/hal_pal_lld.o
  .bss           0x0000000000000000        0x0 build/obj/hal_pal_lld.o
@@ -895,10 +914,12 @@ LOAD build/obj/hal_st.o
 LOAD build/obj/hal_buffers.o
 LOAD build/obj/hal_queues.o
 LOAD build/obj/hal_mmcsd.o
+LOAD build/obj/hal_ext.o
 LOAD build/obj/hal_gpt.o
 LOAD build/obj/hal_pal.o
 LOAD build/obj/hal_serial.o
 LOAD build/obj/hal_lld.o
+LOAD build/obj/hal_ext_lld.o
 LOAD build/obj/hal_pal_lld.o
 LOAD build/obj/hal_st_lld.o
 LOAD build/obj/hal_gpt_lld.o
@@ -1014,7 +1035,7 @@ END GROUP
 .rela.plt
  *(.rela.plt)
 
-.text           0x0000000000000000     0x2a1a
+.text           0x0000000000000000     0x2c2e
  *(.vectors)
  .vectors       0x0000000000000000       0x68 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/crtatmega328p.o
                 0x0000000000000000                __vectors
@@ -1078,7 +1099,6 @@ END GROUP
  *(.text)
  .text          0x0000000000000198        0x2 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/crtatmega328p.o
                 0x0000000000000198                __vector_22
-                0x0000000000000198                __vector_1
                 0x0000000000000198                __vector_24
                 0x0000000000000198                __vector_12
                 0x0000000000000198                __bad_interrupt
@@ -1214,151 +1234,174 @@ END GROUP
                 0x0000000000000cc6                oqPutTimeout
  .text.oqGetI   0x0000000000000d46       0x58 build/obj/hal_queues.o
                 0x0000000000000d46                oqGetI
+ .text.oqWriteI
+                0x0000000000000d9e       0x36 build/obj/hal_queues.o
+                0x0000000000000d9e                oqWriteI
  .text.oqWriteTimeout
-                0x0000000000000d9e       0x8e build/obj/hal_queues.o
-                0x0000000000000d9e                oqWriteTimeout
- .text.gptInit  0x0000000000000e2c        0x2 build/obj/hal_gpt.o
-                0x0000000000000e2c                gptInit
+                0x0000000000000dd4       0x8e build/obj/hal_queues.o
+                0x0000000000000dd4                oqWriteTimeout
+ .text.extStart
+                0x0000000000000e62       0x1a build/obj/hal_ext.o
+                0x0000000000000e62                extStart
+ .text.extChannelEnable
+                0x0000000000000e7c        0x8 build/obj/hal_ext.o
+                0x0000000000000e7c                extChannelEnable
+ .text.gptInit  0x0000000000000e84        0x2 build/obj/hal_gpt.o
+                0x0000000000000e84                gptInit
  .text.gptObjectInit
-                0x0000000000000e2e        0xc build/obj/hal_gpt.o
-                0x0000000000000e2e                gptObjectInit
- .text._readt   0x0000000000000e3a        0x4 build/obj/hal_serial.o
- .text._read    0x0000000000000e3e        0x8 build/obj/hal_serial.o
- .text._writet  0x0000000000000e46        0x4 build/obj/hal_serial.o
- .text._write   0x0000000000000e4a        0x8 build/obj/hal_serial.o
- .text._gett    0x0000000000000e52        0x4 build/obj/hal_serial.o
- .text._get     0x0000000000000e56        0x8 build/obj/hal_serial.o
- .text._putt    0x0000000000000e5e        0x4 build/obj/hal_serial.o
- .text._put     0x0000000000000e62        0x8 build/obj/hal_serial.o
- .text._ctl     0x0000000000000e6a        0x6 build/obj/hal_serial.o
- .text.sdInit   0x0000000000000e70        0x2 build/obj/hal_serial.o
-                0x0000000000000e70                sdInit
+                0x0000000000000e86        0xc build/obj/hal_gpt.o
+                0x0000000000000e86                gptObjectInit
+ .text._readt   0x0000000000000e92        0x4 build/obj/hal_serial.o
+ .text._read    0x0000000000000e96        0x8 build/obj/hal_serial.o
+ .text._writet  0x0000000000000e9e        0x4 build/obj/hal_serial.o
+ .text._write   0x0000000000000ea2        0x8 build/obj/hal_serial.o
+ .text._gett    0x0000000000000eaa        0x4 build/obj/hal_serial.o
+ .text._get     0x0000000000000eae        0x8 build/obj/hal_serial.o
+ .text._putt    0x0000000000000eb6        0x4 build/obj/hal_serial.o
+ .text._put     0x0000000000000eba        0x8 build/obj/hal_serial.o
+ .text._ctl     0x0000000000000ec2        0x6 build/obj/hal_serial.o
+ .text.sdInit   0x0000000000000ec8        0x2 build/obj/hal_serial.o
+                0x0000000000000ec8                sdInit
  .text.sdObjectInit
-                0x0000000000000e72       0x56 build/obj/hal_serial.o
-                0x0000000000000e72                sdObjectInit
- .text.sdStart  0x0000000000000ec8       0x16 build/obj/hal_serial.o
-                0x0000000000000ec8                sdStart
+                0x0000000000000eca       0x56 build/obj/hal_serial.o
+                0x0000000000000eca                sdObjectInit
+ .text.sdStart  0x0000000000000f20       0x16 build/obj/hal_serial.o
+                0x0000000000000f20                sdStart
  .text.sdIncomingDataI
-                0x0000000000000ede       0x48 build/obj/hal_serial.o
-                0x0000000000000ede                sdIncomingDataI
+                0x0000000000000f36       0x48 build/obj/hal_serial.o
+                0x0000000000000f36                sdIncomingDataI
  .text.sdRequestDataI
-                0x0000000000000f26       0x34 build/obj/hal_serial.o
-                0x0000000000000f26                sdRequestDataI
+                0x0000000000000f7e       0x34 build/obj/hal_serial.o
+                0x0000000000000f7e                sdRequestDataI
  .text.hal_lld_init
-                0x0000000000000f5a        0x2 build/obj/hal_lld.o
-                0x0000000000000f5a                hal_lld_init
+                0x0000000000000fb2        0x2 build/obj/hal_lld.o
+                0x0000000000000fb2                hal_lld_init
+ .text.ext_lld_set_intx_edges
+                0x0000000000000fb4       0x5c build/obj/hal_ext_lld.o
+                0x0000000000000fb4                ext_lld_set_intx_edges
+ .text.__vector_1
+                0x0000000000001010       0x6c build/obj/hal_ext_lld.o
+                0x0000000000001010                __vector_1
+ .text.ext_lld_channel_enable
+                0x000000000000107c       0x1a build/obj/hal_ext_lld.o
+                0x000000000000107c                ext_lld_channel_enable
+ .text.ext_lld_start
+                0x0000000000001096       0x84 build/obj/hal_ext_lld.o
+                0x0000000000001096                ext_lld_start
  .text._pal_lld_init
-                0x0000000000000f5c       0x1c build/obj/hal_pal_lld.o
-                0x0000000000000f5c                _pal_lld_init
+                0x000000000000111a       0x1c build/obj/hal_pal_lld.o
+                0x000000000000111a                _pal_lld_init
  .text._pal_lld_setgroupmode
-                0x0000000000000f78       0x48 build/obj/hal_pal_lld.o
-                0x0000000000000f78                _pal_lld_setgroupmode
+                0x0000000000001136       0x48 build/obj/hal_pal_lld.o
+                0x0000000000001136                _pal_lld_setgroupmode
  .text.__vector_14
-                0x0000000000000fc0       0x56 build/obj/hal_st_lld.o
-                0x0000000000000fc0                __vector_14
+                0x000000000000117e       0x56 build/obj/hal_st_lld.o
+                0x000000000000117e                __vector_14
  .text.st_lld_init
-                0x0000000000001016       0x14 build/obj/hal_st_lld.o
-                0x0000000000001016                st_lld_init
+                0x00000000000011d4       0x14 build/obj/hal_st_lld.o
+                0x00000000000011d4                st_lld_init
  .text.__vector_11
-                0x000000000000102a       0xa8 build/obj/hal_gpt_lld.o
-                0x000000000000102a                __vector_11
+                0x00000000000011e8       0xa8 build/obj/hal_gpt_lld.o
+                0x00000000000011e8                __vector_11
  .text.gpt_lld_init
-                0x00000000000010d2        0x6 build/obj/hal_gpt_lld.o
-                0x00000000000010d2                gpt_lld_init
- .text.notify1  0x00000000000010d8        0xc build/obj/hal_serial_lld.o
+                0x0000000000001290        0x6 build/obj/hal_gpt_lld.o
+                0x0000000000001290                gpt_lld_init
+ .text.notify1  0x0000000000001296        0xc build/obj/hal_serial_lld.o
  .text.__vector_18
-                0x00000000000010e4       0x82 build/obj/hal_serial_lld.o
-                0x00000000000010e4                __vector_18
+                0x00000000000012a2       0x82 build/obj/hal_serial_lld.o
+                0x00000000000012a2                __vector_18
  .text.__vector_19
-                0x0000000000001166       0x6e build/obj/hal_serial_lld.o
-                0x0000000000001166                __vector_19
+                0x0000000000001324       0x6e build/obj/hal_serial_lld.o
+                0x0000000000001324                __vector_19
  .text.sd_lld_init
-                0x00000000000011d4        0xe build/obj/hal_serial_lld.o
-                0x00000000000011d4                sd_lld_init
+                0x0000000000001392        0xe build/obj/hal_serial_lld.o
+                0x0000000000001392                sd_lld_init
  .text.sd_lld_start
-                0x00000000000011e2       0x62 build/obj/hal_serial_lld.o
-                0x00000000000011e2                sd_lld_start
+                0x00000000000013a0       0x62 build/obj/hal_serial_lld.o
+                0x00000000000013a0                sd_lld_start
  .text.boardInit
-                0x0000000000001244        0x8 build/obj/board.o
-                0x0000000000001244                boardInit
+                0x0000000000001402        0x8 build/obj/board.o
+                0x0000000000001402                boardInit
  .text.chvprintf
-                0x000000000000124c      0x600 build/obj/chprintf.o
-                0x000000000000124c                chvprintf
+                0x000000000000140a      0x602 build/obj/chprintf.o
+                0x000000000000140a                chvprintf
  .text.chprintf
-                0x000000000000184c       0x1e build/obj/chprintf.o
-                0x000000000000184c                chprintf
+                0x0000000000001a0c       0x1e build/obj/chprintf.o
+                0x0000000000001a0c                chprintf
+ .text.emergency_cb
+                0x0000000000001a2a       0x4e build/obj/W_M.o
  .text.starting
-                0x000000000000186a       0xba build/obj/W_M.o
-                0x000000000000186a                starting
+                0x0000000000001a78       0xba build/obj/W_M.o
+                0x0000000000001a78                starting
  .text.spinning
-                0x0000000000001924      0x124 build/obj/W_M.o
-                0x0000000000001924                spinning
+                0x0000000000001b32      0x124 build/obj/W_M.o
+                0x0000000000001b32                spinning
  .text.lavar_maquina
-                0x0000000000001a48      0x68c build/obj/W_M.o
-                0x0000000000001a48                lavar_maquina
+                0x0000000000001c56      0x694 build/obj/W_M.o
+                0x0000000000001c56                lavar_maquina
  .text.startup.main
-                0x00000000000020d4       0x5a build/obj/W_M.o
-                0x00000000000020d4                main
+                0x00000000000022ea       0x58 build/obj/W_M.o
+                0x00000000000022ea                main
  .text.avr-libc
-                0x000000000000212e      0x218 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libprintf_min.a(vfprintf_min.o)
-                0x000000000000212e                vfprintf
+                0x0000000000002342      0x218 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libprintf_min.a(vfprintf_min.o)
+                0x0000000000002342                vfprintf
  .text.avr-libc
-                0x0000000000002346      0x390 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libscanf_min.a(vfscanf_min.o)
-                0x00000000000024ec                vfscanf
+                0x000000000000255a      0x390 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libscanf_min.a(vfscanf_min.o)
+                0x0000000000002700                vfscanf
  .text.libgcc.div
-                0x00000000000026d6       0x44 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_udivmodsi4.o)
-                0x00000000000026d6                __udivmodsi4
+                0x00000000000028ea       0x44 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_udivmodsi4.o)
+                0x00000000000028ea                __udivmodsi4
  .text.libgcc.div
-                0x000000000000271a       0x28 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_divmodsi4.o)
-                0x000000000000271a                __divmodsi4
+                0x000000000000292e       0x28 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_divmodsi4.o)
+                0x000000000000292e                __divmodsi4
  .text.libgcc.div
-                0x0000000000002742       0x10 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_negsi2.o)
-                0x0000000000002742                __negsi2
- .text.libgcc   0x0000000000002752        0xc /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_tablejump2.o)
-                0x0000000000002752                __tablejump2__
+                0x0000000000002956       0x10 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_negsi2.o)
+                0x0000000000002956                __negsi2
+ .text.libgcc   0x0000000000002966        0xc /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_tablejump2.o)
+                0x0000000000002966                __tablejump2__
  .text.libgcc.mul
-                0x000000000000275e        0xc /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_usmulhisi3.o)
-                0x000000000000275e                __usmulhisi3
-                0x0000000000002760                __usmulhisi3_tail
+                0x0000000000002972        0xc /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_usmulhisi3.o)
+                0x0000000000002972                __usmulhisi3
+                0x0000000000002974                __usmulhisi3_tail
  .text.libgcc.prologue
-                0x000000000000276a       0x38 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_prologue.o)
-                0x000000000000276a                __prologue_saves__
+                0x000000000000297e       0x38 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_prologue.o)
+                0x000000000000297e                __prologue_saves__
  .text.libgcc.prologue
-                0x00000000000027a2       0x36 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_epilogue.o)
-                0x00000000000027a2                __epilogue_restores__
+                0x00000000000029b6       0x36 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_epilogue.o)
+                0x00000000000029b6                __epilogue_restores__
  .text.libgcc.mul
-                0x00000000000027d8       0x1e /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_umulhisi3.o)
-                0x00000000000027d8                __umulhisi3
+                0x00000000000029ec       0x1e /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_umulhisi3.o)
+                0x00000000000029ec                __umulhisi3
  .text.avr-libc
-                0x00000000000027f6       0x10 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(isspace.o)
-                0x00000000000027f6                isspace
+                0x0000000000002a0a       0x10 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(isspace.o)
+                0x0000000000002a0a                isspace
  .text.avr-libc
-                0x0000000000002806       0x16 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(strchr_P.o)
-                0x0000000000002806                strchr_P
+                0x0000000000002a1a       0x16 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(strchr_P.o)
+                0x0000000000002a1a                strchr_P
  .text.avr-libc
-                0x000000000000281c       0x12 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(memcpy.o)
-                0x000000000000281c                memcpy
+                0x0000000000002a30       0x12 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(memcpy.o)
+                0x0000000000002a30                memcpy
  .text.avr-libc
-                0x000000000000282e       0x7c /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(fgetc.o)
-                0x000000000000282e                fgetc
+                0x0000000000002a42       0x7c /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(fgetc.o)
+                0x0000000000002a42                fgetc
  .text.avr-libc
-                0x00000000000028aa       0x78 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(fputc.o)
-                0x00000000000028aa                fputc
+                0x0000000000002abe       0x78 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(fputc.o)
+                0x0000000000002abe                fputc
  .text.avr-libc
-                0x0000000000002922       0x32 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(ungetc.o)
-                0x0000000000002922                ungetc
+                0x0000000000002b36       0x32 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(ungetc.o)
+                0x0000000000002b36                ungetc
  .text.avr-libc
-                0x0000000000002954       0xbc /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(ultoa_invert.o)
-                0x0000000000002954                __ultoa_invert
+                0x0000000000002b68       0xbc /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(ultoa_invert.o)
+                0x0000000000002b68                __ultoa_invert
  .text.avr-libc
-                0x0000000000002a10        0x6 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(cty_isfalse.o)
-                0x0000000000002a10                __ctype_isfalse
-                0x0000000000002a14                __ctype_istrue
-                0x0000000000002a16                . = ALIGN (0x2)
+                0x0000000000002c24        0x6 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(cty_isfalse.o)
+                0x0000000000002c24                __ctype_isfalse
+                0x0000000000002c28                __ctype_istrue
+                0x0000000000002c2a                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x0000000000002a16        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_exit.o)
-                0x0000000000002a16                exit
-                0x0000000000002a16                _exit
+ .fini9         0x0000000000002c2a        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_exit.o)
+                0x0000000000002c2a                exit
+                0x0000000000002c2a                _exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
@@ -1377,11 +1420,11 @@ END GROUP
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x0000000000002a16        0x4 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_exit.o)
+ .fini0         0x0000000000002c2a        0x4 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_exit.o)
  *(.fini0)
-                0x0000000000002a1a                _etext = .
+                0x0000000000002c2e                _etext = .
 
-.data           0x0000000000800100      0x262 load address 0x0000000000002a1a
+.data           0x0000000000800100      0x294 load address 0x0000000000002c2e
                 0x0000000000800100                PROVIDE (__data_start, .)
  *(.data)
  *(.data*)
@@ -1403,50 +1446,55 @@ END GROUP
  .rodata.str1.1
                 0x0000000000800143        0x7 build/obj/chprintf.o
  .rodata.str1.1
-                0x000000000080014a      0x218 build/obj/W_M.o
+                0x000000000080014a      0x225 build/obj/W_M.o
+ .rodata.extcfg.3718
+                0x000000000080036f       0x24 build/obj/W_M.o
  *(.gnu.linkonce.d*)
-                0x0000000000800362                . = ALIGN (0x2)
-                0x0000000000800362                _edata = .
-                0x0000000000800362                PROVIDE (__data_end, .)
+                0x0000000000800394                . = ALIGN (0x2)
+ *fill*         0x0000000000800393        0x1 
+                0x0000000000800394                _edata = .
+                0x0000000000800394                PROVIDE (__data_end, .)
 
-.bss            0x0000000000800362      0x19d
-                0x0000000000800362                PROVIDE (__bss_start, .)
+.bss            0x0000000000800394      0x1a0
+                0x0000000000800394                PROVIDE (__bss_start, .)
  *(.bss)
  *(.bss*)
  .bss.static_heap.2699
-                0x0000000000800362       0x80 build/obj/chmemcore.o
+                0x0000000000800394       0x80 build/obj/chmemcore.o
  .bss.default_heap
-                0x00000000008003e2        0xe build/obj/chheap.o
- .bss.lavar     0x00000000008003f0        0x1 build/obj/W_M.o
-                0x00000000008003f0                lavar
+                0x0000000000800414        0xe build/obj/chheap.o
+ .bss.lavar     0x0000000000800422        0x1 build/obj/W_M.o
+                0x0000000000800422                lavar
  *(COMMON)
- COMMON         0x00000000008003f1       0x69 build/obj/chsys.o
-                0x00000000008003f1                ch_idle_thread_wa
- COMMON         0x000000000080045a       0x33 build/obj/chschd.o
-                0x000000000080045a                ch
- COMMON         0x000000000080048d        0x4 build/obj/chmemcore.o
-                0x000000000080048d                ch_memcore
- COMMON         0x0000000000800491        0x1 build/obj/chcore.o
-                0x0000000000800491                __avr_in_isr
- COMMON         0x0000000000800492        0xa build/obj/hal_gpt_lld.o
-                0x0000000000800492                GPTD1
- COMMON         0x000000000080049c       0x49 build/obj/hal_serial_lld.o
-                0x000000000080049c                SD1
- COMMON         0x00000000008004e5       0x1a build/obj/W_M.o
-                0x00000000008004e5                fsm_lvg
-                0x00000000008004f0                fsm_ml
-                0x00000000008004f3                fsm_exg
-                0x00000000008004f6                fsm_prd
-                0x00000000008004f8                fsm_cen
-                0x00000000008004ff                PROVIDE (__bss_end, .)
-                0x0000000000002a1a                __data_load_start = LOADADDR (.data)
-                0x0000000000002c7c                __data_load_end = (__data_load_start + SIZEOF (.data))
+ COMMON         0x0000000000800423       0x69 build/obj/chsys.o
+                0x0000000000800423                ch_idle_thread_wa
+ COMMON         0x000000000080048c       0x33 build/obj/chschd.o
+                0x000000000080048c                ch
+ COMMON         0x00000000008004bf        0x4 build/obj/chmemcore.o
+                0x00000000008004bf                ch_memcore
+ COMMON         0x00000000008004c3        0x1 build/obj/chcore.o
+                0x00000000008004c3                __avr_in_isr
+ COMMON         0x00000000008004c4        0x3 build/obj/hal_ext_lld.o
+                0x00000000008004c4                EXTD1
+ COMMON         0x00000000008004c7        0xa build/obj/hal_gpt_lld.o
+                0x00000000008004c7                GPTD1
+ COMMON         0x00000000008004d1       0x49 build/obj/hal_serial_lld.o
+                0x00000000008004d1                SD1
+ COMMON         0x000000000080051a       0x1a build/obj/W_M.o
+                0x000000000080051a                fsm_lvg
+                0x0000000000800525                fsm_ml
+                0x0000000000800528                fsm_exg
+                0x000000000080052b                fsm_prd
+                0x000000000080052d                fsm_cen
+                0x0000000000800534                PROVIDE (__bss_end, .)
+                0x0000000000002c2e                __data_load_start = LOADADDR (.data)
+                0x0000000000002ec2                __data_load_end = (__data_load_start + SIZEOF (.data))
 
-.noinit         0x00000000008004ff        0x0
+.noinit         0x0000000000800534        0x0
                 [!provide]                        PROVIDE (__noinit_start, .)
  *(.noinit*)
                 [!provide]                        PROVIDE (__noinit_end, .)
-                0x00000000008004ff                _end = .
+                0x0000000000800534                _end = .
                 [!provide]                        PROVIDE (__heap_start, .)
 
 .eeprom         0x0000000000810000        0x0
@@ -1502,9 +1550,11 @@ END GROUP
  .comment       0x0000000000000011       0x12 build/obj/hal.o
  .comment       0x0000000000000011       0x12 build/obj/hal_st.o
  .comment       0x0000000000000011       0x12 build/obj/hal_queues.o
+ .comment       0x0000000000000011       0x12 build/obj/hal_ext.o
  .comment       0x0000000000000011       0x12 build/obj/hal_gpt.o
  .comment       0x0000000000000011       0x12 build/obj/hal_serial.o
  .comment       0x0000000000000011       0x12 build/obj/hal_lld.o
+ .comment       0x0000000000000011       0x12 build/obj/hal_ext_lld.o
  .comment       0x0000000000000011       0x12 build/obj/hal_pal_lld.o
  .comment       0x0000000000000011       0x12 build/obj/hal_st_lld.o
  .comment       0x0000000000000011       0x12 build/obj/hal_gpt_lld.o
@@ -1538,7 +1588,7 @@ END GROUP
 .debug_sfnames
  *(.debug_sfnames)
 
-.debug_aranges  0x0000000000000000      0x780
+.debug_aranges  0x0000000000000000      0x828
  *(.debug_aranges)
  .debug_aranges
                 0x0000000000000000       0x50 build/obj/chsys.o
@@ -1567,30 +1617,34 @@ END GROUP
  .debug_aranges
                 0x0000000000000418       0x98 build/obj/hal_queues.o
  .debug_aranges
-                0x00000000000004b0       0x78 build/obj/hal_gpt.o
+                0x00000000000004b0       0x50 build/obj/hal_ext.o
  .debug_aranges
-                0x0000000000000528       0xa0 build/obj/hal_serial.o
+                0x0000000000000500       0x78 build/obj/hal_gpt.o
  .debug_aranges
-                0x00000000000005c8       0x20 build/obj/hal_lld.o
+                0x0000000000000578       0xa0 build/obj/hal_serial.o
  .debug_aranges
-                0x00000000000005e8       0x48 build/obj/hal_pal_lld.o
+                0x0000000000000618       0x20 build/obj/hal_lld.o
  .debug_aranges
-                0x0000000000000630       0x28 build/obj/hal_st_lld.o
+                0x0000000000000638       0x50 build/obj/hal_ext_lld.o
  .debug_aranges
-                0x0000000000000658       0x58 build/obj/hal_gpt_lld.o
+                0x0000000000000688       0x48 build/obj/hal_pal_lld.o
  .debug_aranges
-                0x00000000000006b0       0x48 build/obj/hal_serial_lld.o
+                0x00000000000006d0       0x28 build/obj/hal_st_lld.o
  .debug_aranges
-                0x00000000000006f8       0x20 build/obj/board.o
+                0x00000000000006f8       0x58 build/obj/hal_gpt_lld.o
  .debug_aranges
-                0x0000000000000718       0x30 build/obj/chprintf.o
+                0x0000000000000750       0x48 build/obj/hal_serial_lld.o
  .debug_aranges
-                0x0000000000000748       0x38 build/obj/W_M.o
+                0x0000000000000798       0x20 build/obj/board.o
+ .debug_aranges
+                0x00000000000007b8       0x30 build/obj/chprintf.o
+ .debug_aranges
+                0x00000000000007e8       0x40 build/obj/W_M.o
 
 .debug_pubnames
  *(.debug_pubnames)
 
-.debug_info     0x0000000000000000    0x14053
+.debug_info     0x0000000000000000    0x15a9c
  *(.debug_info .gnu.linkonce.wi.*)
  .debug_info    0x0000000000000000      0x5f4 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/crtatmega328p.o
  .debug_info    0x00000000000005f4      0xc8a build/obj/chsys.o
@@ -1606,18 +1660,20 @@ END GROUP
  .debug_info    0x00000000000090ce      0x7c0 build/obj/hal.o
  .debug_info    0x000000000000988e      0x83b build/obj/hal_st.o
  .debug_info    0x000000000000a0c9     0x17eb build/obj/hal_queues.o
- .debug_info    0x000000000000b8b4     0x105c build/obj/hal_gpt.o
- .debug_info    0x000000000000c910     0x175d build/obj/hal_serial.o
- .debug_info    0x000000000000e06d      0x6a9 build/obj/hal_lld.o
- .debug_info    0x000000000000e716      0x987 build/obj/hal_pal_lld.o
- .debug_info    0x000000000000f09d      0x763 build/obj/hal_st_lld.o
- .debug_info    0x000000000000f800      0xc9b build/obj/hal_gpt_lld.o
- .debug_info    0x000000000001049b      0xe66 build/obj/hal_serial_lld.o
- .debug_info    0x0000000000011301      0x72e build/obj/board.o
- .debug_info    0x0000000000011a2f      0xdb4 build/obj/chprintf.o
- .debug_info    0x00000000000127e3     0x1870 build/obj/W_M.o
+ .debug_info    0x000000000000b8b4      0xcdf build/obj/hal_ext.o
+ .debug_info    0x000000000000c593     0x105c build/obj/hal_gpt.o
+ .debug_info    0x000000000000d5ef     0x175d build/obj/hal_serial.o
+ .debug_info    0x000000000000ed4c      0x6a9 build/obj/hal_lld.o
+ .debug_info    0x000000000000f3f5      0xb84 build/obj/hal_ext_lld.o
+ .debug_info    0x000000000000ff79      0x987 build/obj/hal_pal_lld.o
+ .debug_info    0x0000000000010900      0x763 build/obj/hal_st_lld.o
+ .debug_info    0x0000000000011063      0xc9b build/obj/hal_gpt_lld.o
+ .debug_info    0x0000000000011cfe      0xe66 build/obj/hal_serial_lld.o
+ .debug_info    0x0000000000012b64      0x72e build/obj/board.o
+ .debug_info    0x0000000000013292      0xdb4 build/obj/chprintf.o
+ .debug_info    0x0000000000014046     0x1a56 build/obj/W_M.o
 
-.debug_abbrev   0x0000000000000000     0x4554
+.debug_abbrev   0x0000000000000000     0x4b01
  *(.debug_abbrev)
  .debug_abbrev  0x0000000000000000      0x5a2 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/crtatmega328p.o
  .debug_abbrev  0x00000000000005a2      0x3a8 build/obj/chsys.o
@@ -1633,18 +1689,20 @@ END GROUP
  .debug_abbrev  0x0000000000002450      0x18e build/obj/hal.o
  .debug_abbrev  0x00000000000025de      0x200 build/obj/hal_st.o
  .debug_abbrev  0x00000000000027de      0x3f9 build/obj/hal_queues.o
- .debug_abbrev  0x0000000000002bd7      0x299 build/obj/hal_gpt.o
- .debug_abbrev  0x0000000000002e70      0x3db build/obj/hal_serial.o
- .debug_abbrev  0x000000000000324b      0x122 build/obj/hal_lld.o
- .debug_abbrev  0x000000000000336d      0x1c4 build/obj/hal_pal_lld.o
- .debug_abbrev  0x0000000000003531      0x179 build/obj/hal_st_lld.o
- .debug_abbrev  0x00000000000036aa      0x387 build/obj/hal_gpt_lld.o
- .debug_abbrev  0x0000000000003a31      0x364 build/obj/hal_serial_lld.o
- .debug_abbrev  0x0000000000003d95      0x140 build/obj/board.o
- .debug_abbrev  0x0000000000003ed5      0x30a build/obj/chprintf.o
- .debug_abbrev  0x00000000000041df      0x375 build/obj/W_M.o
+ .debug_abbrev  0x0000000000002bd7      0x25e build/obj/hal_ext.o
+ .debug_abbrev  0x0000000000002e35      0x299 build/obj/hal_gpt.o
+ .debug_abbrev  0x00000000000030ce      0x3db build/obj/hal_serial.o
+ .debug_abbrev  0x00000000000034a9      0x122 build/obj/hal_lld.o
+ .debug_abbrev  0x00000000000035cb      0x307 build/obj/hal_ext_lld.o
+ .debug_abbrev  0x00000000000038d2      0x1c4 build/obj/hal_pal_lld.o
+ .debug_abbrev  0x0000000000003a96      0x179 build/obj/hal_st_lld.o
+ .debug_abbrev  0x0000000000003c0f      0x387 build/obj/hal_gpt_lld.o
+ .debug_abbrev  0x0000000000003f96      0x364 build/obj/hal_serial_lld.o
+ .debug_abbrev  0x00000000000042fa      0x140 build/obj/board.o
+ .debug_abbrev  0x000000000000443a      0x30a build/obj/chprintf.o
+ .debug_abbrev  0x0000000000004744      0x3bd build/obj/W_M.o
 
-.debug_line     0x0000000000000000     0x5a73
+.debug_line     0x0000000000000000     0x60c4
  *(.debug_line .debug_line.* .debug_line_end)
  .debug_line    0x0000000000000000       0x1a /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/crtatmega328p.o
  .debug_line    0x000000000000001a      0x3fd build/obj/chsys.o
@@ -1660,18 +1718,20 @@ END GROUP
  .debug_line    0x0000000000002b2c      0x244 build/obj/hal.o
  .debug_line    0x0000000000002d70      0x1d8 build/obj/hal_st.o
  .debug_line    0x0000000000002f48      0x751 build/obj/hal_queues.o
- .debug_line    0x0000000000003699      0x389 build/obj/hal_gpt.o
- .debug_line    0x0000000000003a22      0x494 build/obj/hal_serial.o
- .debug_line    0x0000000000003eb6      0x136 build/obj/hal_lld.o
- .debug_line    0x0000000000003fec      0x23f build/obj/hal_pal_lld.o
- .debug_line    0x000000000000422b      0x1c7 build/obj/hal_st_lld.o
- .debug_line    0x00000000000043f2      0x350 build/obj/hal_gpt_lld.o
- .debug_line    0x0000000000004742      0x367 build/obj/hal_serial_lld.o
- .debug_line    0x0000000000004aa9      0x177 build/obj/board.o
- .debug_line    0x0000000000004c20      0x4f9 build/obj/chprintf.o
- .debug_line    0x0000000000005119      0x95a build/obj/W_M.o
+ .debug_line    0x0000000000003699      0x2c8 build/obj/hal_ext.o
+ .debug_line    0x0000000000003961      0x389 build/obj/hal_gpt.o
+ .debug_line    0x0000000000003cea      0x494 build/obj/hal_serial.o
+ .debug_line    0x000000000000417e      0x136 build/obj/hal_lld.o
+ .debug_line    0x00000000000042b4      0x2fb build/obj/hal_ext_lld.o
+ .debug_line    0x00000000000045af      0x23f build/obj/hal_pal_lld.o
+ .debug_line    0x00000000000047ee      0x1c7 build/obj/hal_st_lld.o
+ .debug_line    0x00000000000049b5      0x350 build/obj/hal_gpt_lld.o
+ .debug_line    0x0000000000004d05      0x367 build/obj/hal_serial_lld.o
+ .debug_line    0x000000000000506c      0x177 build/obj/board.o
+ .debug_line    0x00000000000051e3      0x4f9 build/obj/chprintf.o
+ .debug_line    0x00000000000056dc      0x9e8 build/obj/W_M.o
 
-.debug_frame    0x0000000000000000     0x1718
+.debug_frame    0x0000000000000000     0x18bc
  *(.debug_frame)
  .debug_frame   0x0000000000000000       0x9c build/obj/chsys.o
  .debug_frame   0x000000000000009c       0x5c build/obj/chvt.o
@@ -1686,18 +1746,20 @@ END GROUP
  .debug_frame   0x00000000000009c8       0x24 build/obj/hal.o
  .debug_frame   0x00000000000009ec       0x64 build/obj/hal_st.o
  .debug_frame   0x0000000000000a50      0x2dc build/obj/hal_queues.o
- .debug_frame   0x0000000000000d2c       0xf8 build/obj/hal_gpt.o
- .debug_frame   0x0000000000000e24      0x19c build/obj/hal_serial.o
- .debug_frame   0x0000000000000fc0       0x24 build/obj/hal_lld.o
- .debug_frame   0x0000000000000fe4       0x74 build/obj/hal_pal_lld.o
- .debug_frame   0x0000000000001058       0x88 build/obj/hal_st_lld.o
- .debug_frame   0x00000000000010e0      0x16c build/obj/hal_gpt_lld.o
- .debug_frame   0x000000000000124c      0x11c build/obj/hal_serial_lld.o
- .debug_frame   0x0000000000001368       0x24 build/obj/board.o
- .debug_frame   0x000000000000138c       0xe8 build/obj/chprintf.o
- .debug_frame   0x0000000000001474      0x2a4 build/obj/W_M.o
+ .debug_frame   0x0000000000000d2c       0x9c build/obj/hal_ext.o
+ .debug_frame   0x0000000000000dc8       0xf8 build/obj/hal_gpt.o
+ .debug_frame   0x0000000000000ec0      0x19c build/obj/hal_serial.o
+ .debug_frame   0x000000000000105c       0x24 build/obj/hal_lld.o
+ .debug_frame   0x0000000000001080       0xfc build/obj/hal_ext_lld.o
+ .debug_frame   0x000000000000117c       0x74 build/obj/hal_pal_lld.o
+ .debug_frame   0x00000000000011f0       0x88 build/obj/hal_st_lld.o
+ .debug_frame   0x0000000000001278      0x16c build/obj/hal_gpt_lld.o
+ .debug_frame   0x00000000000013e4      0x11c build/obj/hal_serial_lld.o
+ .debug_frame   0x0000000000001500       0x24 build/obj/board.o
+ .debug_frame   0x0000000000001524       0xe8 build/obj/chprintf.o
+ .debug_frame   0x000000000000160c      0x2b0 build/obj/W_M.o
 
-.debug_str      0x0000000000000000     0x1fa7
+.debug_str      0x0000000000000000     0x217d
  *(.debug_str)
  .debug_str     0x0000000000000000      0x208 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/crtatmega328p.o
  .debug_str     0x0000000000000208      0x69b build/obj/chsys.o
@@ -1726,28 +1788,32 @@ END GROUP
                                         0x4e4 (size before relaxing)
  .debug_str     0x00000000000012d4      0x1e6 build/obj/hal_queues.o
                                         0x69f (size before relaxing)
- .debug_str     0x00000000000014ba      0x1ca build/obj/hal_gpt.o
+ .debug_str     0x00000000000014ba      0x167 build/obj/hal_ext.o
+                                        0x5ea (size before relaxing)
+ .debug_str     0x0000000000001621      0x1c1 build/obj/hal_gpt.o
                                         0x66a (size before relaxing)
- .debug_str     0x0000000000001684      0x1c3 build/obj/hal_serial.o
+ .debug_str     0x00000000000017e2      0x1c3 build/obj/hal_serial.o
                                         0x801 (size before relaxing)
- .debug_str     0x0000000000001847       0x32 build/obj/hal_lld.o
+ .debug_str     0x00000000000019a5       0x32 build/obj/hal_lld.o
                                         0x467 (size before relaxing)
- .debug_str     0x0000000000001879      0x126 build/obj/hal_pal_lld.o
+ .debug_str     0x00000000000019d7       0x64 build/obj/hal_ext_lld.o
+                                        0x606 (size before relaxing)
+ .debug_str     0x0000000000001a3b      0x126 build/obj/hal_pal_lld.o
                                         0x5ad (size before relaxing)
- .debug_str     0x000000000000199f       0x7e build/obj/hal_st_lld.o
+ .debug_str     0x0000000000001b61       0x7e build/obj/hal_st_lld.o
                                         0x53d (size before relaxing)
- .debug_str     0x0000000000001a1d      0x10f build/obj/hal_gpt_lld.o
+ .debug_str     0x0000000000001bdf      0x10f build/obj/hal_gpt_lld.o
                                         0x69b (size before relaxing)
- .debug_str     0x0000000000001b2c       0x87 build/obj/hal_serial_lld.o
+ .debug_str     0x0000000000001cee       0x87 build/obj/hal_serial_lld.o
                                         0x776 (size before relaxing)
- .debug_str     0x0000000000001bb3       0x2c build/obj/board.o
+ .debug_str     0x0000000000001d75       0x2c build/obj/board.o
                                         0x49e (size before relaxing)
- .debug_str     0x0000000000001bdf      0x148 build/obj/chprintf.o
+ .debug_str     0x0000000000001da1      0x148 build/obj/chprintf.o
                                         0x5b5 (size before relaxing)
- .debug_str     0x0000000000001d27      0x280 build/obj/W_M.o
-                                        0x8f4 (size before relaxing)
+ .debug_str     0x0000000000001ee9      0x294 build/obj/W_M.o
+                                        0x9b0 (size before relaxing)
 
-.debug_loc      0x0000000000000000     0x77b1
+.debug_loc      0x0000000000000000     0x7d5d
  *(.debug_loc)
  .debug_loc     0x0000000000000000      0x1f1 build/obj/chsys.o
  .debug_loc     0x00000000000001f1      0x104 build/obj/chvt.o
@@ -1760,14 +1826,16 @@ END GROUP
  .debug_loc     0x0000000000002cd0      0x921 build/obj/chheap.o
  .debug_loc     0x00000000000035f1       0x7c build/obj/hal_st.o
  .debug_loc     0x000000000000366d     0x1192 build/obj/hal_queues.o
- .debug_loc     0x00000000000047ff      0x3b5 build/obj/hal_gpt.o
- .debug_loc     0x0000000000004bb4      0x8a9 build/obj/hal_serial.o
- .debug_loc     0x000000000000545d      0x135 build/obj/hal_pal_lld.o
- .debug_loc     0x0000000000005592       0xcb build/obj/hal_st_lld.o
- .debug_loc     0x000000000000565d      0x452 build/obj/hal_gpt_lld.o
- .debug_loc     0x0000000000005aaf      0x36a build/obj/hal_serial_lld.o
- .debug_loc     0x0000000000005e19      0xfef build/obj/chprintf.o
- .debug_loc     0x0000000000006e08      0x9a9 build/obj/W_M.o
+ .debug_loc     0x00000000000047ff      0x216 build/obj/hal_ext.o
+ .debug_loc     0x0000000000004a15      0x3b5 build/obj/hal_gpt.o
+ .debug_loc     0x0000000000004dca      0x8a9 build/obj/hal_serial.o
+ .debug_loc     0x0000000000005673      0x39d build/obj/hal_ext_lld.o
+ .debug_loc     0x0000000000005a10      0x135 build/obj/hal_pal_lld.o
+ .debug_loc     0x0000000000005b45       0xcb build/obj/hal_st_lld.o
+ .debug_loc     0x0000000000005c10      0x452 build/obj/hal_gpt_lld.o
+ .debug_loc     0x0000000000006062      0x36a build/obj/hal_serial_lld.o
+ .debug_loc     0x00000000000063cc      0xfef build/obj/chprintf.o
+ .debug_loc     0x00000000000073bb      0x9a2 build/obj/W_M.o
 
 .debug_macinfo
  *(.debug_macinfo)
@@ -1787,7 +1855,7 @@ END GROUP
 .debug_pubtypes
  *(.debug_pubtypes)
 
-.debug_ranges   0x0000000000000000      0x980
+.debug_ranges   0x0000000000000000      0xa38
  *(.debug_ranges)
  .debug_ranges  0x0000000000000000       0x88 build/obj/chsys.o
  .debug_ranges  0x0000000000000088       0x20 build/obj/chvt.o
@@ -1802,16 +1870,18 @@ END GROUP
  .debug_ranges  0x00000000000004f8       0x10 build/obj/hal.o
  .debug_ranges  0x0000000000000508       0x30 build/obj/hal_st.o
  .debug_ranges  0x0000000000000538      0x118 build/obj/hal_queues.o
- .debug_ranges  0x0000000000000650       0x68 build/obj/hal_gpt.o
- .debug_ranges  0x00000000000006b8       0xa8 build/obj/hal_serial.o
- .debug_ranges  0x0000000000000760       0x10 build/obj/hal_lld.o
- .debug_ranges  0x0000000000000770       0x38 build/obj/hal_pal_lld.o
- .debug_ranges  0x00000000000007a8       0x18 build/obj/hal_st_lld.o
- .debug_ranges  0x00000000000007c0       0x90 build/obj/hal_gpt_lld.o
- .debug_ranges  0x0000000000000850       0x50 build/obj/hal_serial_lld.o
- .debug_ranges  0x00000000000008a0       0x10 build/obj/board.o
- .debug_ranges  0x00000000000008b0       0x38 build/obj/chprintf.o
- .debug_ranges  0x00000000000008e8       0x98 build/obj/W_M.o
+ .debug_ranges  0x0000000000000650       0x40 build/obj/hal_ext.o
+ .debug_ranges  0x0000000000000690       0x68 build/obj/hal_gpt.o
+ .debug_ranges  0x00000000000006f8       0xa8 build/obj/hal_serial.o
+ .debug_ranges  0x00000000000007a0       0x10 build/obj/hal_lld.o
+ .debug_ranges  0x00000000000007b0       0x58 build/obj/hal_ext_lld.o
+ .debug_ranges  0x0000000000000808       0x38 build/obj/hal_pal_lld.o
+ .debug_ranges  0x0000000000000840       0x18 build/obj/hal_st_lld.o
+ .debug_ranges  0x0000000000000858       0x90 build/obj/hal_gpt_lld.o
+ .debug_ranges  0x00000000000008e8       0x50 build/obj/hal_serial_lld.o
+ .debug_ranges  0x0000000000000938       0x10 build/obj/board.o
+ .debug_ranges  0x0000000000000948       0x38 build/obj/chprintf.o
+ .debug_ranges  0x0000000000000980       0xb8 build/obj/W_M.o
 
 .debug_macro
  *(.debug_macro)
@@ -1821,6 +1891,8 @@ LOAD linker stubs
 Cross Reference Table
 
 Symbol                                            File
+EXTD1                                             build/obj/hal_ext_lld.o
+                                                  build/obj/W_M.o
 GPTD1                                             build/obj/hal_gpt_lld.o
 SD1                                               build/obj/hal_serial_lld.o
                                                   build/obj/W_M.o
@@ -1829,6 +1901,7 @@ __avr_in_isr                                      build/obj/chcore.o
                                                   build/obj/hal_serial_lld.o
                                                   build/obj/hal_gpt_lld.o
                                                   build/obj/hal_st_lld.o
+                                                  build/obj/hal_ext_lld.o
                                                   build/obj/chsys.o
 __bad_interrupt                                   /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/crtatmega328p.o
 __bss_end                                         /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_clear_bss.o)
@@ -1846,6 +1919,7 @@ __do_clear_bss                                    /usr/lib/gcc/avr/5.4.0/avr5/li
                                                   build/obj/hal_serial_lld.o
                                                   build/obj/hal_gpt_lld.o
                                                   build/obj/hal_pal_lld.o
+                                                  build/obj/hal_ext_lld.o
                                                   build/obj/chcore.o
                                                   build/obj/chheap.o
                                                   build/obj/chmemcore.o
@@ -1890,7 +1964,8 @@ __umulhisi3                                       /usr/lib/gcc/avr/5.4.0/avr5/li
 __usmulhisi3                                      /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_usmulhisi3.o)
                                                   build/obj/W_M.o
 __usmulhisi3_tail                                 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_usmulhisi3.o)
-__vector_1                                        /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/crtatmega328p.o
+__vector_1                                        build/obj/hal_ext_lld.o
+                                                  /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/crtatmega328p.o
 __vector_10                                       /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/crtatmega328p.o
 __vector_11                                       build/obj/hal_gpt_lld.o
                                                   /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/crtatmega328p.o
@@ -2047,6 +2122,7 @@ chSchDoReschedule                                 build/obj/chschd.o
                                                   build/obj/hal_serial_lld.o
                                                   build/obj/hal_gpt_lld.o
                                                   build/obj/hal_st_lld.o
+                                                  build/obj/hal_ext_lld.o
 chSchDoRescheduleAhead                            build/obj/chschd.o
 chSchDoRescheduleBehind                           build/obj/chschd.o
                                                   build/obj/chthreads.o
@@ -2066,6 +2142,7 @@ chSchIsPreemptionRequired                         build/obj/chschd.o
                                                   build/obj/hal_serial_lld.o
                                                   build/obj/hal_gpt_lld.o
                                                   build/obj/hal_st_lld.o
+                                                  build/obj/hal_ext_lld.o
 chSchReadyAheadI                                  build/obj/chschd.o
 chSchReadyI                                       build/obj/chschd.o
                                                   build/obj/chmsg.o
@@ -2166,6 +2243,27 @@ evtObjectInit                                     build/obj/evtimer.o
 evtStart                                          build/obj/evtimer.o
 exit                                              /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_exit.o)
                                                   /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/crtatmega328p.o
+extChannelDisable                                 build/obj/hal_ext.o
+extChannelEnable                                  build/obj/hal_ext.o
+                                                  build/obj/W_M.o
+extInit                                           build/obj/hal_ext.o
+extObjectInit                                     build/obj/hal_ext.o
+                                                  build/obj/hal_ext_lld.o
+extSetChannelModeI                                build/obj/hal_ext.o
+extStart                                          build/obj/hal_ext.o
+                                                  build/obj/W_M.o
+extStop                                           build/obj/hal_ext.o
+ext_lld_channel_disable                           build/obj/hal_ext_lld.o
+                                                  build/obj/hal_ext.o
+ext_lld_channel_enable                            build/obj/hal_ext_lld.o
+                                                  build/obj/hal_ext.o
+ext_lld_init                                      build/obj/hal_ext_lld.o
+                                                  build/obj/hal_ext.o
+ext_lld_set_intx_edges                            build/obj/hal_ext_lld.o
+ext_lld_start                                     build/obj/hal_ext_lld.o
+                                                  build/obj/hal_ext.o
+ext_lld_stop                                      build/obj/hal_ext_lld.o
+                                                  build/obj/hal_ext.o
 fgetc                                             /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(fgetc.o)
                                                   /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libscanf_min.a(vfscanf_min.o)
 fputc                                             /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(fputc.o)
@@ -2259,6 +2357,7 @@ oqPutTimeout                                      build/obj/hal_queues.o
 oqResetI                                          build/obj/hal_queues.o
                                                   build/obj/hal_serial.o
 oqWriteI                                          build/obj/hal_queues.o
+                                                  build/obj/W_M.o
 oqWriteTimeout                                    build/obj/hal_queues.o
                                                   build/obj/hal_serial.o
 palReadBus                                        build/obj/hal_pal.o

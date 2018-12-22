@@ -34,7 +34,9 @@ build/obj/W_M.o: W_M.c ../../../os/rt/include/ch.h chconf.h \
  ../../../os/hal/ports/AVR/MEGA/ATMEGAxx/avr_pins.h \
  ../../../os/hal/include/hal_adc.h ../../../os/hal/include/hal_can.h \
  ../../../os/hal/include/hal_crypto.h ../../../os/hal/include/hal_dac.h \
- ../../../os/hal/include/hal_ext.h ../../../os/hal/include/hal_gpt.h \
+ ../../../os/hal/include/hal_ext.h \
+ ../../../os/hal/ports/AVR/MEGA/LLD/EXTv1/hal_ext_lld.h \
+ ../../../os/hal/include/hal_gpt.h \
  ../../../os/hal/ports/AVR/MEGA/LLD/TIMv1/hal_gpt_lld.h \
  ../../../os/hal/ports/AVR/MEGA/ATMEGAxx/avr_timers.h mcuconf.h \
  ../../../os/hal/include/hal_i2c.h ../../../os/hal/include/hal_i2s.h \
@@ -159,6 +161,8 @@ mcuconf.h:
 ../../../os/hal/include/hal_dac.h:
 
 ../../../os/hal/include/hal_ext.h:
+
+../../../os/hal/ports/AVR/MEGA/LLD/EXTv1/hal_ext_lld.h:
 
 ../../../os/hal/include/hal_gpt.h:
 
